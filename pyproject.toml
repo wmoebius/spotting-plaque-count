@@ -1,0 +1,19 @@
+[project]
+name = "phageid"
+version = "0.1.0"
+description = "Automated counting of phage from image sequences."
+authors = [
+    {name = "Finley Gibson",email = "f.j.gibson@exeter.ac.uk"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "phageid", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
