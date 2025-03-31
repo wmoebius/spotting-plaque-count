@@ -7,14 +7,21 @@ from scipy.ndimage import gaussian_filter
 
 
 class Kernel(ABC):
-    def __init__(self, size: int, kernel_op: Optional[Callable] = None) -> None:
+    def __init__(
+        self, size: int, kernel_op: Optional[Callable] = None, norm: bool = True
+    ) -> None:
         self.size = size
-        self._kernel_op = kernel_op
+        self.kernel_op = kernel_op
+        self.norm = norm
         self._kernel = self._create()
+        if norm:
+            self._kernel = self._kernel - self._kernel.mean()
+
         super().__init__()
 
     def _create(self) -> np.ndarray:
-        """_summary_
+        """
+        create
 
         Args:
             size (int): size of kernel: (size, size)
@@ -26,6 +33,12 @@ class Kernel(ABC):
             npt.NDArray[float]: kernel as np array.
         """
         raise NotImplementedError
+
+    def create(self) -> np.ndarray:
+        if self.kernel_op is None:
+            return self._create()
+        else:
+            return self.kernel_op(self._create())
 
     def convolve(self, image: npt.NDArray[Any]) -> npt.NDArray[Any]:
         return convolve2d(
@@ -72,53 +85,19 @@ class GaussianKernel(Kernel):
 
         kernel = kernel * np.sqrt(1 / (kernel**2).sum())
 
-        if self._kernel_op is None:
-            return kernel
-        else:
-            return self._kernel_op(kernel)
-
-
-class CircularKernel(Kernel):
-    def _create(self) -> np.ndarray:
-        """
-        Creates a 2D circular kernel that sums to 0 and when convolved with itself gives a result of 1.
-
-        Args:
-            size (int): The size of the kernel (must be odd).
-
-        Returns:
-            np.ndarray: A 2D circular kernel with the desired properties.
-        """
-        radius = (self.size - 1) // 2
-        y, x = np.ogrid[-radius : radius + 1, -radius : radius + 1]
-        mask = x**2 + y**2 <= radius**2  # Circular mask
-        kernel = np.zeros((self.size, self.size))  # Initialize kernel
-        kernel[mask] = 1  # Set inside circle to 1
-
-        # Subtract the mean to make the sum 0
-        kernel -= np.mean(kernel)
-
-        # Normalize the kernel so that convolution with itself produces 1
-        kernel /= np.sum(np.abs(kernel))  # Ensures normalization of kernel sum
-
-        kernel = kernel * np.sqrt(1 / (kernel**2).sum())
-
-        if self._kernel_op is None:
-            return kernel
-        else:
-            return self._kernel_op(kernel)
+        return kernel
 
 
 class RingKernel(Kernel):
     def __init__(
         self,
         size: int,
-        thickness: int,
+        thickness: Optional[int] = None,
         blur: int = 1,
         kernel_op: Optional[Callable] = None,
     ) -> None:
         self.blur = blur
-        self.thickness = thickness
+        self.thickness = thickness if thickness is not None else size // 5
         super().__init__(size, kernel_op=kernel_op)
 
     def _create(self) -> np.ndarray:
