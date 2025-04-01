@@ -1,5 +1,6 @@
 import click
 from phageid.segmentation import segment_trays
+from pathlib import Path
 
 
 @click.group()
@@ -9,15 +10,25 @@ def cli():
 
 
 @click.command()
-@click.argument("input_file", required=True, type=click.Path(exists=True))
+@click.argument("input_dir", required=True, type=click.Path(exists=True))
 @click.argument("output_dir", required=False, type=click.Path(), default=None)
-def segment_plates(input_file, output_dir):
+@click.option(
+    "--visualise",
+    is_flag=True,
+    default=False,
+    help="Enable visualisation of segmentation results.",
+)
+def segment_plates(input_dir, output_dir, visualise):
     """Segment plates in the input data."""
+    print(type(input_dir))
 
     output_dir = (
-        output_dir if output_dir is not None else input_file.parent / "segmented_plates"
+        Path(output_dir)
+        if output_dir is not None
+        else input_dir.parent / "segmented_plates"
     )
-    segment_trays(input_file, output_dir)
+    input_dir = Path(input_dir)
+    segment_trays(input_dir, output_dir, visualise)
 
 
 @click.command()
