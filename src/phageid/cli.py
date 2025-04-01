@@ -1,6 +1,6 @@
 import click
 from phageid.segmentation import segment_trays as _segment_trays
-from phageid.segmentation import
+from phageid.segmentation import segment_samples as _segment_samples
 from pathlib import Path
 
 
@@ -20,7 +20,7 @@ def cli():
     help="Enable visualisation of segmentation process.",
 )
 def segment_trays(input_dir, output_dir, visualise):
-    """Segment trays in the input data."""
+    """Segment trays from raw images."""
     print(type(input_dir))
 
     output_dir = (
@@ -33,19 +33,23 @@ def segment_trays(input_dir, output_dir, visualise):
 
 
 @click.command()
-@click.argument("target_file", type=click.Path(exists=True))
-@click.argument("output_file", type=click.Path(exists=True))
+@click.argument("input_file", type=click.Path(exists=True))
+@click.argument("output_dir", type=click.Path(exists=True))
 @click.option(
     "--visualise",
     is_flag=True,
     default=False,
     help="Enable visualisation of segmentation process.",
 )
-def segment_samples(target_file, visualise):
-    
-
-    """Segment samples within the trays."""
-    click.echo("Segmenting samples...")
+def segment_samples(input_file, output_dir):
+    """Segment samples from tray images."""
+    output_dir = (
+        Path(output_dir)
+        if output_dir is not None
+        else input_file.parent / "segmented_samples"
+    )
+    input_file = Path(input_file)
+    _segment_samples(input_file, output_dir)
 
 
 @click.command()

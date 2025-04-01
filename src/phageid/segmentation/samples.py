@@ -2,11 +2,12 @@ import numpy as np
 from pathlib import Path
 from matplotlib.widgets import Slider, Button
 import matplotlib.pyplot as plt
-from phageid import DIR_DATA, FILE_CONFIG
+from phageid import FILE_CONFIG
 import logging
-from datetime import datetime
 from os import makedirs
 import toml
+from phageid import config
+from itertools import product
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
@@ -40,6 +41,22 @@ def set_slider_values(sliders):
     # Write the updated data back to the TOML file
     with open(FILE_CONFIG, "w") as file:
         toml.dump(data, file)
+
+
+def generate_image(
+    dims, x_spacing, x_offset, y_spacing, y_offset, n_rows, n_columns, radius
+):
+    image = np.zeros(dims)
+    for row in range(int(n_rows)):
+        for col in range((n_columns)):
+            x = col * x_spacing + x_offset
+            y = row * y_spacing + y_offset
+
+            if 0 <= x < image.shape[1] and 0 <= y < image.shape[0]:
+                rr, cc = np.ogrid[: image.shape[0], : image.shape[1]]
+                mask = (cc - x) ** 2 + (rr - y) ** 2 <= radius**2
+                image[mask] = 1
+    return image
 
 
 def slice_image(
@@ -82,46 +99,71 @@ def slice_image(
     return indices, slices
 
 
-def segment_samples(input_file: Path, visualise: bool):
-    assert input_file.is_file()
+def slice_circle_bounding_boxes(images, centers, radius):
+    """
+    Slice the bounding boxes of circles from an image array.
 
-    images = np.load(input_file)
+    Parameters:
+    - image: numpy array, the image from which to slice the circles.
+    - centers: list of tuples, the (x, y) coordinates of the circle centers.
+    - radius: int, the radius of the circles.
+
+    Returns:
+    - List of numpy arrays, each representing the bounding box of a circle.
+    """
+    bounding_boxes = []
+
+    for x, y in centers:
+        # Calculate the bounding box coordinates
+        x_min = int(max(0, x - radius))
+        x_max = int(min(images.shape[2], x + radius + 1))
+        y_min = int(max(0, y - radius))
+        y_max = int(min(images.shape[1], y + radius + 1))
+
+        # Slice the bounding box from the image
+        bounding_box = images[:, y_min:y_max, x_min:x_max]
+        bounding_boxes.append(bounding_box)
+
+    return np.asarray(bounding_boxes)
+
+
+def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
+    # confirm dirs
+    if not input_file.is_file():
+        logging.error(f"Input file {input_file} does not exist.")
+        raise ValueError(f"Input file {input_file} does not exist.")
+
+    if not output_dir.is_dir():
+        try:
+            makedirs(output_dir)
+            logging.info(f"Created ouput directory: {output_dir}")
+        except Exception:
+            logging.error(f"Output directory {output_dir} is not a valid directory.")
+            raise ValueError(
+                f"Output directory '{output_dir}' is not a valid directory."
+            )
+
+    # load images
+    try:
+        images = np.load(input_file)
+        logging.info(f"Loaded images from {input}")
+        assert isinstance(images, np.ndarray)
+    except Exception as e:
+        logging.error(f"Failed to load data from {input_file}: {e}")
     final_image = images[-1].copy()
 
     if visualise:
         plt.imshow(final_image)
 
-    # In[5]:
+    # load config
+    try:
+        scaling_factor = int(config["sample_segmentation"]["scaling_factor"])
+        logging.info(f"loaded scaling factor of: {scaling_factor}")
+    except Exception as e:
+        logging.error(
+            f"invalid scaling factor {config['sample_segmentation']['scaling_factor']} specified in {FILE_CONFIG}: {e}"
+        )
 
-    datetime_str = f"{str(datetime.now().replace(microsecond=0)).replace(' ', '_').replace(':', '-')}"
-
-    output_dir = DIR_DATA / f"processed/splits_{datetime_str}"
-    makedirs(output_dir)
-
-    # In[6]:
-
-    # Function to create the grid of circle centers
-    def generate_image(
-        dims, x_spacing, x_offset, y_spacing, y_offset, n_rows, n_columns, radius
-    ):
-        image = np.zeros(dims)
-        for row in range(int(n_rows)):
-            for col in range((n_columns)):
-                x = col * x_spacing + x_offset
-                y = row * y_spacing + y_offset
-
-                if 0 <= x < image.shape[1] and 0 <= y < image.shape[0]:
-                    rr, cc = np.ogrid[: image.shape[0], : image.shape[1]]
-                    mask = (cc - x) ** 2 + (rr - y) ** 2 <= radius**2
-                    image[mask] = 1
-        return image
-
-    # In[7]:
-
-    scaling_factor = 10
-
-    print(final_image.shape)
-    print(final_image[::scaling_factor, ::scaling_factor].shape)
     # Initialize the figure and axes
     fig, ax = plt.subplots()
     ax.imshow(final_image[::scaling_factor, ::scaling_factor])
@@ -208,12 +250,8 @@ def segment_samples(input_file: Path, visualise: bool):
     button = Button(button_ax, "Set", color="lightblue", hovercolor="blue")
     button.on_clicked(on_button_clicked)
 
-    # Show the plot
     fig.canvas.draw_idle()
-
     plt.show()
-
-    # In[8]:
 
     x_spacing = sliders["x_spacing"].val
     x_offset = sliders["x_offset"].val
@@ -225,8 +263,6 @@ def segment_samples(input_file: Path, visualise: bool):
 
     set_slider_values(sliders=sliders)
 
-    # In[9]:
-
     centre_xs = (
         ((np.arange(n_columns) * x_spacing) + x_offset) * scaling_factor
     ).astype(int)
@@ -234,67 +270,22 @@ def segment_samples(input_file: Path, visualise: bool):
         int
     )
 
-    # In[10]:
-
-    from itertools import product
-
     centres = np.array(list(product(centre_xs, centre_ys)))
     centre_inds = list(product(range(n_columns), range(n_rows)))
     centres.shape
 
-    # In[11]:
-
-    if show_plots:
+    if visualise:
         plt.figure()
         plt.imshow(final_image)
         plt.scatter(*centres.T, c="r", marker="x")
 
-    # In[15]:
-
-    radius
-
-    # In[19]:
-
-    def slice_circle_bounding_boxes(images, centers, radius):
-        """
-        Slice the bounding boxes of circles from an image array.
-
-        Parameters:
-        - image: numpy array, the image from which to slice the circles.
-        - centers: list of tuples, the (x, y) coordinates of the circle centers.
-        - radius: int, the radius of the circles.
-
-        Returns:
-        - List of numpy arrays, each representing the bounding box of a circle.
-        """
-        bounding_boxes = []
-
-        for x, y in centers:
-            # Calculate the bounding box coordinates
-            x_min = int(max(0, x - radius))
-            x_max = int(min(images.shape[2], x + radius + 1))
-            y_min = int(max(0, y - radius))
-            y_max = int(min(images.shape[1], y + radius + 1))
-
-            # Slice the bounding box from the image
-            bounding_box = images[:, y_min:y_max, x_min:x_max]
-            bounding_boxes.append(bounding_box)
-
-        return np.asarray(bounding_boxes)
-
-    # In[20]:
-
     circles = slice_circle_bounding_boxes(images, centres, radius * scaling_factor)
     circles = {ind: circ for ind, circ in zip(centre_inds, circles)}
-
-    # In[21]:
 
     if visualise:
         for c in circles[0, 0]:
             plt.figure()
             plt.imshow(c)
-
-    # In[70]:
 
     for (i, j), sample in circles.items():
         out_path = output_dir / "sample_{:02d}_{:02d}.npy".format(i, j)

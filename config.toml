@@ -32,3 +32,6 @@ current = 7
 min = 1
 max = 150
 current = 10.790064102564102
+
+[sample_segmentation]
+scaling_factor = 10
