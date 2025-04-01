@@ -1,5 +1,6 @@
 import click
 from phageid.segmentation import segment_trays as _segment_trays
+from phageid.segmentation import
 from pathlib import Path
 
 
@@ -16,7 +17,7 @@ def cli():
     "--visualise",
     is_flag=True,
     default=False,
-    help="Enable visualisation of segmentation results.",
+    help="Enable visualisation of segmentation process.",
 )
 def segment_trays(input_dir, output_dir, visualise):
     """Segment trays in the input data."""
@@ -32,9 +33,17 @@ def segment_trays(input_dir, output_dir, visualise):
 
 
 @click.command()
-@click.argument("input_dir", type=click.Path(exists=True))
-@click.argument("output_dir", type=click.Path(exists=True))
-def segment_samples():
+@click.argument("target_file", type=click.Path(exists=True))
+@click.argument("output_file", type=click.Path(exists=True))
+@click.option(
+    "--visualise",
+    is_flag=True,
+    default=False,
+    help="Enable visualisation of segmentation process.",
+)
+def segment_samples(target_file, visualise):
+    
+
     """Segment samples within the trays."""
     click.echo("Segmenting samples...")
 
