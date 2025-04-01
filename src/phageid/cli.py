@@ -1,5 +1,5 @@
 import click
-from phageid.segmentation import segment_trays
+from phageid.segmentation import segment_trays as _segment_trays
 from pathlib import Path
 
 
@@ -18,24 +18,24 @@ def cli():
     default=False,
     help="Enable visualisation of segmentation results.",
 )
-def segment_plates(input_dir, output_dir, visualise):
-    """Segment plates in the input data."""
+def segment_trays(input_dir, output_dir, visualise):
+    """Segment trays in the input data."""
     print(type(input_dir))
 
     output_dir = (
         Path(output_dir)
         if output_dir is not None
-        else input_dir.parent / "segmented_plates"
+        else input_dir.parent / "segmented_trays"
     )
     input_dir = Path(input_dir)
-    segment_trays(input_dir, output_dir, visualise)
+    _segment_trays(input_dir, output_dir, visualise)
 
 
 @click.command()
 @click.argument("input_dir", type=click.Path(exists=True))
 @click.argument("output_dir", type=click.Path(exists=True))
 def segment_samples():
-    """Segment samples within the plates."""
+    """Segment samples within the trays."""
     click.echo("Segmenting samples...")
 
 
@@ -47,7 +47,7 @@ def detect():
 
 
 # Add commands to CLI group
-cli.add_command(segment_plates)
+cli.add_command(segment_trays)
 cli.add_command(segment_samples)
 cli.add_command(detect)
 
