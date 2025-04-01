@@ -188,3 +188,6 @@ pyrightconfig.json
 
 # vscode 
 .vscode
+
+# logs
+logs

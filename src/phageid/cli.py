@@ -1,4 +1,5 @@
 import click
+from phageid.segmentation import segment_trays
 
 
 @click.group()
@@ -8,14 +9,20 @@ def cli():
 
 
 @click.command()
-@click.argument("input_file", type=click.Path(exists=True))
-def segment_plates(input):
+@click.argument("input_file", required=True, type=click.Path(exists=True))
+@click.argument("output_dir", required=False, type=click.Path(), default=None)
+def segment_plates(input_file, output_dir):
     """Segment plates in the input data."""
-    click.echo("Segmenting plates...")
+
+    output_dir = (
+        output_dir if output_dir is not None else input_file.parent / "segmented_plates"
+    )
+    segment_trays(input_file, output_dir)
 
 
 @click.command()
-@click.argument("plate_directory", type=click.Path(exists=True))
+@click.argument("input_dir", type=click.Path(exists=True))
+@click.argument("output_dir", type=click.Path(exists=True))
 def segment_samples():
     """Segment samples within the plates."""
     click.echo("Segmenting samples...")
