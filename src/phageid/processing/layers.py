@@ -1,21 +1,27 @@
 from typing import Protocol
-import numpy.typing import NDArray
+from numpy.typing import NDArray
 import numpy as np
 from typing import Union, Optional, Callable
 import cv2
 from phageid import logging
+from typing import Tuple
+from .kernels import Kernel
+from skimage.feature import peak_local_max
+from phageid.utils import image_to_cartesian
+
 
 class Layer(Protocol):
     """
     Single detection layer base class.
     """
 
-    def __call__(
-        self, image: NDArray[np.number], **kwargs) -> NDArray[np.number]: ...
+    def __call__(self, image: NDArray[np.number], **kwargs) -> NDArray[np.number]: ...
 
 
 class Threshold(Layer):
-    def __init__(self, thresh: np.number, above: bool = True, allow_equal: bool = False):
+    def __init__(
+        self, thresh: np.number, above: bool = True, allow_equal: bool = False
+    ):
         self.thresh = thresh
         self.above = above
         self.allow_equal = allow_equal
@@ -99,7 +105,9 @@ class Difference(Layer):
 
 
 class ThreshReplace(Layer):
-    def __init__(self, thresh: float, replace: Union[np.number, str], above: bool = True):
+    def __init__(
+        self, thresh: float, replace: Union[np.number, str], above: bool = True
+    ):
         self.thresh = thresh
         self.replace = replace
         self.above = above
@@ -132,36 +140,49 @@ class MaskReplace(Layer):
     def __init__(
         self,
         mask: NDArray[np.int64],
-        replace: Union[np.number, str],
+        replace: Union[np.number, Callable],
         above: bool = True,
     ):
         self.mask = mask
         self.replace = replace
 
     def __call__(self, images: NDArray[np.number]) -> NDArray[np.float64]:
-        if isinstance(self.replace, str):
-            try:
-                op = getattr(np, self.replace)
-            except AttributeError:
-                raise ValueError(
-                    f"replace value parsed to ThreshReplace not valid. Received {self.replace}"
-                )
+        if isinstance(self.replace, Callable):
             for i in range(images.shape[0]):
-                images[i][self.mask] = op(images[i])
-        else:
+                images[i][self.mask] = self.replace(images[i])
+        elif isinstance(self.replace, (float, int, np.nan)):
             for i in range(images.shape[0]):
                 images[i][self.mask] = self.replace
+        else:
+            logging.error(
+                "Bad argument to MaskReplace. replace should be number or callable, instead found:",
+                type(self.replace),
+            )
+            raise ValueError(
+                f"Bad argument to MaskReplace. replace should be number or callable, instead found: {type(self.replace)}"
+            )
 
         return images
 
 
 class SubtractByFrame(Layer):
-    def __init__(self, operation: Callable):
-        self.operation = operation
+    def __init__(self, value: Callable | np.number):
+        self.value = value
 
     def __call__(self, images: NDArray[np.number]) -> NDArray[np.float64]:
-        for i, image in enumerate(images):
-            images[i] = image - self.operation(image)
+        if isinstance(self.value, Callable):
+            for i in range(images.shape[0]):
+                images[i] -= self.value(images[i])
+        elif isinstance(self.value, (float, int, np.nan)):
+            for i in range(images.shape[0]):
+                images[i] -= self.value
+        else:
+            logging.error(
+                f"Bad argument. value should be number or callable, instead found: {type(self.value)}",
+            )
+            raise ValueError(
+                f"Bad argument. value should be number or callable, instead found: {type(self.value)}",
+            )
         return images
 
 
@@ -182,3 +203,32 @@ class Subtract(Layer):
             logging.error(msg)
             raise ValueError(msg)
         return images
+
+
+class Convolution(Layer):
+    def __init__(self, kernel: Kernel):
+        self.kernel = kernel
+
+    def __call__(self, image: NDArray[np.number]) -> NDArray[np.number]:
+        return np.stack(
+            [self.kernel.convolve(img).astype(np.float64) for img in image], axis=0
+        )
+
+
+class PeakFinder(Layer):
+    def __init__(self, min_distance: int, threshold_rel: float, threshold_abs: float):
+        self.min_distance = min_distance
+        self.threshold_rel = threshold_rel
+        self.threshold_abs = threshold_abs
+
+    def __call__(self, image: NDArray[np.number]) -> NDArray[np.number]:
+        peaks = [
+            peak_local_max(
+                im,
+                min_distance=self.min_distance,
+                threshold_rel=self.threshold_rel,
+                threshold_abs=self.threshold_abs,
+            )
+            for im in image
+        ]
+        return [image_to_cartesian(pk) for pk in peaks]

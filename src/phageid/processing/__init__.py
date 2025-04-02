@@ -1,1 +1,1 @@
-from base
+from .base import Process
