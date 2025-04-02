@@ -34,14 +34,16 @@ def segment_trays(input_dir, output_dir, visualise):
 
 @click.command()
 @click.argument("input_file", type=click.Path(exists=True))
-@click.argument("output_dir", type=click.Path(exists=True))
+@click.argument(
+    "output_dir", required=False, type=click.Path(path_type=Path), default=None
+)
 @click.option(
     "--visualise",
     is_flag=True,
     default=False,
     help="Enable visualisation of segmentation process.",
 )
-def segment_samples(input_file, output_dir):
+def segment_samples(input_file, output_dir, visualise):
     """Segment samples from tray images."""
     output_dir = (
         Path(output_dir)
@@ -49,7 +51,7 @@ def segment_samples(input_file, output_dir):
         else input_file.parent / "segmented_samples"
     )
     input_file = Path(input_file)
-    _segment_samples(input_file, output_dir)
+    _segment_samples(input_file, output_dir, visualise)
 
 
 @click.command()

@@ -8,10 +8,10 @@ import shutil
 @pytest.mark.parametrize(
     ("input_dir", "n_trays"),
     [
-        (Path(__file__).parent / ".test_resources/example_trays/example_01", 3),
+        (Path(__file__).parent / ".test_resources/example_images/example_01", 3),
     ],
 )
-def test_segmentation(input_dir, n_trays):
+def test_tray_segmentation(input_dir, n_trays):
     output_dir = input_dir / "segmented_trays"
     assert input_dir.is_dir()
 
