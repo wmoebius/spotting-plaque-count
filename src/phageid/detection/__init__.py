@@ -1,1 +1,1 @@
-from .detection import detect_file
+from .detection import detect_phage

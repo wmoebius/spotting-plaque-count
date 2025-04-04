@@ -1,13 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
-from os import makedirs
-from phageid import logging
-import cv2
 from itertools import product
-from scipy.ndimage import gaussian_filter1d
-from typing import Tuple
+from typing import List, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
 import numpy.typing as npt
+from scipy.ndimage import gaussian_filter1d
+
+from phageid import logging
 
 
 def find_step_edges(step_array: np.ndarray) -> npt.NDArray[np.int32]:
@@ -178,29 +177,7 @@ def validate_tray(tray):
     return tray.std() > 10
 
 
-def segment_trays(input_dir: Path, output_dir: Path, visualise: bool):
-    # create output dir if it does not already exist
-    if not output_dir.is_dir():
-        makedirs(output_dir)
-        logging.info(f"created directory at {output_dir}")
-
-    # confirm dirs
-    if not input_dir.is_dir():
-        logging.error("Input directory '%s' is not a valid directory.", input_dir)
-        raise ValueError(f"Input directory '{input_dir}' is not a valid directory.")
-
-    if not output_dir.is_dir():
-        logging.error("Output directory '%s' is not a valid directory.", output_dir)
-        raise ValueError(f"Output directory '{output_dir}' is not a valid directory.")
-
-    ## load images
-    image_paths = sorted(list(input_dir.iterdir()))
-    rgb_images = [cv2.imread(path) for path in image_paths if path.is_file()]
-
-    # basic preprocessing
-    images = [image.mean(axis=2) for image in rgb_images]
-    images = [np.where(image < 1, 1, image).astype(int) for image in images]
-    del rgb_images
+def segment_trays(images: npt.NDArray[np.number], visualise: bool) -> List[npt.NDArray[np.number]]:
 
     # select last image
     image = images[-1]
@@ -255,18 +232,12 @@ def segment_trays(input_dir: Path, output_dir: Path, visualise: bool):
         extract_subregions(images=np.asarray(images), corners=q_coord - pad_size)
         for q_coord in q_corners
     ]
-    trays = [(i, t) for i, t in enumerate(trays) if validate_tray(t)]
     logging.info(f"detected {len(trays)} trays")
 
-    for i, tray in trays:
+    for tray in trays:
         if visualise:
             plt.Figure()
             plt.imshow(tray[-1])
             plt.show()
 
-        try:
-            file_path = output_dir / f"tray_location_{i}"
-            np.save(file_path, tray)
-            logging.info(f"saved tray image to: {file_path}")
-        except Exception as e:
-            logging.error(f"Failed to save tray image to: {file_path} caused by: {e}")
+    return trays

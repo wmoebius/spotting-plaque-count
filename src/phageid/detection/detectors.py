@@ -1,19 +1,23 @@
 from abc import ABC
+from typing import List
+
 import numpy as np
 from numpy.typing import NDArray
+
 from phageid.processing import Process
+from phageid.processing.kernels import GaussianKernel
 from phageid.processing.layers import (
-    SubtractByFrame,
     Convolution,
     GaussianBlur,
     PeakFinder,
+    SubtractByFrame,
 )
-from phageid.processing.kernels import GaussianKernel
 from phageid.utils import find_first_peak
 
 
 class Detector(ABC):
-    def detect() -> NDArray[np.int64]: ...
+    def detect(self, data: NDArray[np.number], stack: bool = True) -> NDArray[np.int64]:
+        ...
 
 
 class GaussianDetector(Detector):
@@ -27,10 +31,5 @@ class GaussianDetector(Detector):
         ]
     )
 
-    def detect(self, data: NDArray[np.number], stack: bool = True) -> NDArray[np.int64]:
-        points = self.process
-
-        if not stack:
-            return points
-        else:
-            return np.stack(points)
+    def detect(self, data: NDArray[np.number], stack: bool = True) -> List[NDArray[np.number]]:
+        return self.process(data)
