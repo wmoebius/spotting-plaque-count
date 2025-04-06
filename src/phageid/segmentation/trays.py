@@ -22,7 +22,7 @@ def find_step_edges(step_array: np.ndarray) -> npt.NDArray[np.int32]:
     """
     diff = np.diff(step_array)
     edges = np.where(diff != 0)[0]
-    return edges + 1  # Add 1 since diff is offset by one element
+    return (edges + 1).astype(np.int32)  # Add 1 since diff is offset by one element
 
 
 def split_into_quadrants(
@@ -119,10 +119,8 @@ def extract_subregion(image: np.ndarray, corners: np.ndarray) -> np.ndarray:
     return subregion
 
 
-def extract_subregions(images: np.ndarray, corners: np.ndarray) -> np.ndarray:
-    return np.array(
-        list(map(lambda image: extract_subregion(image, corners=corners), images))
-    )
+def extract_subregions(images: ImageStack, corners: np.ndarray) -> ImageStack:
+    return list(map(lambda image: extract_subregion(image, corners=corners), images))
 
 
 def extract_box(array, centre, size):
@@ -178,7 +176,7 @@ def validate_tray(tray):
     return tray.std() > 10
 
 
-def segment_trays(images: ImageStack, visualise: bool) -> List[npt.NDArray[np.number]]:
+def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
 
     # pad image
     pad_size = 10
@@ -228,14 +226,14 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[npt.NDArray[np.nu
 
     # extract tray subregions
     trays = [
-        extract_subregions(images=np.asarray(images), corners=q_coord - pad_size)
+        extract_subregions(images=images, corners=q_coord - pad_size)
         for q_coord in q_corners
     ]
     logging.info(f"detected {len(trays)} trays")
 
     for tray in trays:
         if visualise:
-            plt.Figure()
+            plt.figure()
             plt.imshow(tray[-1])
             plt.show()
 

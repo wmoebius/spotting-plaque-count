@@ -36,7 +36,7 @@ def segment_trays(input_dir, output_dir, output_filename, visualise):
     """Segment trays from raw images."""
     input_path, output_path = parse_argument_dirs(input_dir, output_dir)
     images: ImageStack = read_images(input_path)
-    trays: List[ImageStack] = _segment_trays(images, visualise)
+    trays:  List[ImageStack]= _segment_trays(images, visualise)
     write_stacks(trays, output_path, output_filename)
 
 
