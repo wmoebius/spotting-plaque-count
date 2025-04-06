@@ -1,37 +1,37 @@
 [x_spacing]
 min = 10
 max = 100
-current = 32.26179209569956
+current = 20.733944954128436
 
 [x_offset]
 min = 0
 max = 100
-current = 38.91181270610402
+current = 28.863796753705003
 
 [y_spacing]
 min = 0
 max = 100
-current = 31.70342889831077
+current = 21.6890143495648
 
 [y_offset]
 min = 0
 max = 100
-current = 32.904826199609644
+current = 16.5137614678899
 
 [rows]
 min = 1
 max = 30
-current = 8
+current = 12
 
 [columns]
 min = 1
 max = 15
-current = 5
+current = 7
 
 [radius]
 min = 1
 max = 150
-current = 12.436469479776555
+current = 10.724941724941722
 
 [sample_segmentation]
 scaling_factor = 10
