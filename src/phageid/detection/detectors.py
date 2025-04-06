@@ -16,7 +16,7 @@ from phageid.utils import find_first_peak
 
 
 class Detector(ABC):
-    def detect(self, data: NDArray[np.number], stack: bool = True) -> NDArray[np.int64]:
+    def detect(self, data: NDArray[np.number]) -> List[NDArray[np.number]]:
         ...
 
 
@@ -31,5 +31,5 @@ class GaussianDetector(Detector):
         ]
     )
 
-    def detect(self, data: NDArray[np.number], stack: bool = True) -> List[NDArray[np.number]]:
+    def detect(self, data: NDArray[np.number]) -> List[NDArray[np.number]]:
         return self.process(data)

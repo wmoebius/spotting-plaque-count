@@ -15,7 +15,7 @@ class Process(ABC):
     def __init__(self, layers: List[Layer]):
         self.layers = layers
 
-    def __call__(self, image: NDArray[np.number]) -> NDArray[np.number]:
+    def __call__(self, image: NDArray[np.number]) -> List[NDArray[np.number]]| NDArray[np.number]:
         image = image.copy()
         for layer in self.layers:
             image = layer(image)
