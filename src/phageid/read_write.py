@@ -62,7 +62,7 @@ def read_images(image_dir: Path) -> ImageStack:
 def read_stack(stack_path: Path) -> ImageStack:
     try:
         np_stack: np.ndarray = np.load(stack_path)
-        logging.info("Read image data from {}".format(stack_path))
+        logging.info("read image data from {} with shape: {}".format(stack_path, np_stack.shape))
         stack: ImageStack = [image for image in np_stack]
     except Exception as e:
         err = "Failed to read image from {} due to: {}".format(stack_path, e)
@@ -73,7 +73,7 @@ def read_stack(stack_path: Path) -> ImageStack:
 
 
 def write_stack(stack: ImageStack, write_path: Path):
-    images = np.vstack(stack)
+    images = np.stack(stack, axis=0)
     try:
         np.save(write_path, images)
         logging.info("Wrote image file to {}".format(write_path))

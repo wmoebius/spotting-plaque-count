@@ -55,8 +55,6 @@ def detect(input_file, output_dir, visualise):
     input_path, output_path = parse_detection_args(input_file, output_dir)
     images: ImageStack = read_stack(input_path)
     d_samples: D_ImageStack = segment_samples(images, visualise=visualise)
-
-    print(d_samples.keys())
     # d_points: D_PointStack = NotImplemented # detect points
     # combined: ImageStack = NotImplemented   # Mash them back together
     # write to disk (add option to this)

@@ -23,3 +23,4 @@ def test_sample_segmentation(input_file):
     returned = segment_samples(images, visualise=False)
 
     assert returned is not None
+    assert isinstance(returned, dict)
