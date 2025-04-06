@@ -1,5 +1,5 @@
+import re
 from pathlib import Path
-from string import Formatter
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -9,10 +9,8 @@ from numpy.typing import NDArray
 from phageid import logging
 
 
-def count_placeholders(format_string):
-    formatter = Formatter()
-    return sum(1 for _, field_name, _, _ in formatter.parse(format_string) if field_name is not None)
-
+def has_placeholder(s: str) -> bool:
+    return bool(re.search(r'(?<!{){[^{}]*}(?!})', s))
 
 def parse_argument_dirs(input_dir: str, output_dir: Optional[str]) -> Tuple[Path, Path]:
     input_path = Path(input_dir)
@@ -48,7 +46,7 @@ def write_images(images: List[NDArray[np.number]], write_dir: Path, file_str: st
         if write_dir.is_dir():
             for i, image in enumerate(images):
 
-                if count_placeholders(file_str) < 1:
+                if not has_placeholder(file_str):
                     # ensure there is a placeholder for the file name to prevent file overwriting
                     file_str += "_{:03d}"
 
