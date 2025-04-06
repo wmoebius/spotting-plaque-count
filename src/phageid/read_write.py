@@ -1,4 +1,5 @@
 from pathlib import Path
+from string import Formatter
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -6,6 +7,11 @@ from cv2 import imread
 from numpy.typing import NDArray
 
 from phageid import logging
+
+
+def count_placeholders(format_string):
+    formatter = Formatter()
+    return sum(1 for _, field_name, _, _ in formatter.parse(format_string) if field_name is not None)
 
 
 def parse_argument_dirs(input_dir: str, output_dir: Optional[str]) -> Tuple[Path, Path]:
@@ -41,6 +47,10 @@ def read_images(image_dir: Path) -> List[NDArray[np.number]]:
 def write_images(images: List[NDArray[np.number]], write_dir: Path, file_str: str = "image_{:03d}"):
         if write_dir.is_dir():
             for i, image in enumerate(images):
+
+                if count_placeholders(file_str) < 1:
+                    # ensure there is a placeholder for the file name to prevent file overwriting
+                    file_str += "_{:03d}"
 
                 file_path = write_dir / file_str.format(i)
                 try:
