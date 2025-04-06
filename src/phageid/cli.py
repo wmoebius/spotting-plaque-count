@@ -25,8 +25,7 @@ def cli():
 @click.argument("output_dir", required=False, type=click.Path(), default=None)
 @click.argument("output_filename",
     required=False, type=click.Path(),
-    default="tray_{}",
-    help="the filename under which to save the individual trays. Use \{\} to specify placholde for tray number.")
+    default="tray_{}")
 @click.option(
     "--visualise",
     is_flag=True,

@@ -1,7 +1,6 @@
-from posix import error
 import re
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 import numpy as np
 from cv2 import imread
@@ -55,7 +54,7 @@ def read_stack(stack_path: Path) -> ImageStack:
     return stack
 
 
-def write_stack(stack: ImageStack, write_path: Path)
+def write_stack(stack: ImageStack, write_path: Path):
     images = np.vstack(stack)
     try:
         np.save(write_path, images)
