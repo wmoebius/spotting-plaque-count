@@ -2,7 +2,7 @@
 import click
 
 from phageid.detection import detect_phage
-from phageid.read_write import parse_argument_dirs, read_images
+from phageid.read_write import parse_argument_dirs, read_images, write_images
 from phageid.segmentation import segment_trays as _segment_trays
 
 
@@ -15,16 +15,19 @@ def cli():
 @click.command()
 @click.argument("input_dir", required=True, type=click.Path(exists=True))
 @click.argument("output_dir", required=False, type=click.Path(), default=None)
+@click.argument("output_filename", required=False, type=click.Path(), default="tray_{}")
 @click.option(
     "--visualise",
     is_flag=True,
     default=False,
     help="Enable visualisation of segmentation process.",
 )
-def segment_trays(input_dir, output_dir, visualise):
+def segment_trays(input_dir, output_dir, output_filename, visualise):
     """Segment trays from raw images."""
     input_path, output_path = parse_argument_dirs(input_dir, output_dir)
-    _segment_trays(input_dir, output_dir, visualise)
+    images = read_images(input_path)
+    trays = _segment_trays(images, visualise)
+    write_images(trays, output_path, output_filename)
 
 
 @click.command()

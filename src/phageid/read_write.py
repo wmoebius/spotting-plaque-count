@@ -38,7 +38,7 @@ def read_images(image_dir: Path) -> List[NDArray[np.number]]:
     return images
 
 
-def write_images(images: NDArray[np.number], write_dir: Path, file_str: str = "image_{:03d}"):
+def write_images(images: List[NDArray[np.number]], write_dir: Path, file_str: str = "image_{:03d}"):
         if write_dir.is_dir():
             for i, image in enumerate(images):
 

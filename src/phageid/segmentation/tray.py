@@ -177,25 +177,23 @@ def validate_tray(tray):
     return tray.std() > 10
 
 
-def segment_trays(images: npt.NDArray[np.number], visualise: bool) -> List[npt.NDArray[np.number]]:
-
-    # select last image
-    image = images[-1]
-
-    if visualise:
-        plt.imshow(image)
-        plt.show()
+def segment_trays(images: List[npt.NDArray[np.number]], visualise: bool) -> List[npt.NDArray[np.number]]:
 
     # pad image
     pad_size = 10
 
-    image = np.stack(images, 0).min(axis=0).astype(int)
+    # get clearest view of phage sample spots
+    image = np.vstack(images).min(axis=0).astype(int)
     image[image == 255] = 0
     image = np.pad(
         image,
         pad_size,
         mode="constant",
     )
+
+    if visualise:
+        plt.imshow(image)
+        plt.show()
 
     # use pixel variance to fit step function to identify tray edges.
     xav = image.std(axis=0) > 10
