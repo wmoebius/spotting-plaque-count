@@ -1,10 +1,9 @@
 from abc import ABC
 from typing import List
 
-import numpy as np
-from numpy.typing import NDArray
+from phageid.dtypes import ImageStack, PointStack
 
-from .layers import Layer
+from .layers import Layer, PointLayer
 
 
 class Process(ABC):
@@ -13,10 +12,10 @@ class Process(ABC):
     """
 
     def __init__(self, layers: List[Layer]):
-        self.layers = layers
+        self.layers: List[Layer, ..., PointLayer] = layers
 
-    def __call__(self, image: NDArray[np.number]) -> List[NDArray[np.number]]| NDArray[np.number]:
-        image = image.copy()
+
+    def __call__(self, stack: ImageStack) -> PointStack:
         for layer in self.layers:
-            image = layer(image)
-        return image
+            stack = layer(stack)
+        return stack
