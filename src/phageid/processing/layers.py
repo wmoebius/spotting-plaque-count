@@ -3,6 +3,7 @@ from typing import Callable, Optional, Protocol, Tuple, TypeVar, Union
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+from scipy.spatial.distance import cdist
 from skimage.feature import peak_local_max
 
 from phageid import logging
@@ -247,3 +248,25 @@ class PeakFinder(PointLayer):
             for im in stack
         ]
         return [image_to_cartesian(pk) for pk in peaks]
+
+
+class AgglomeratePeaks(PointLayer):
+
+    def __init__(self, min_distance: int):
+        self.min_distance = min_distance
+
+    def __call__(self, stack: PointStack) -> PointStack:
+        out = [stack[0]]
+        for previous, current in zip(stack[:-1], stack[1:]):
+
+            if previous.shape[0] > 0:
+                m = cdist(current, np.vstack(out), metric="euclidean")
+                min_dist = m.min(axis=1)
+                inds = min_dist > self.min_distance
+                to_add = current[inds]
+
+                out.append(to_add)
+            else:
+                out.append(current)
+
+        return out

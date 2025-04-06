@@ -4,6 +4,7 @@ from phageid.dtypes import ImageStack, PointStack
 from phageid.processing import Process
 from phageid.processing.kernels import GaussianKernel
 from phageid.processing.layers import (
+    AgglomeratePeaks,
     Convolution,
     GaussianBlur,
     PeakFinder,
@@ -25,6 +26,7 @@ class GaussianDetector(Detector):
             Convolution(kernel=GaussianKernel(size=13, sigma=2)),
             GaussianBlur(kernel_size=9, sigma=1),
             PeakFinder(min_distance=15, threshold_rel=0.0, threshold_abs=32),
+            AgglomeratePeaks(min_distance=15),
         ]
     )
 

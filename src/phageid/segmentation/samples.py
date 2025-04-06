@@ -322,6 +322,6 @@ def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
     if visualise:
         plt.figure()
         plt.imshow(final_image)
-        plt.scatter(*centres.T, c="r", marker="x")
+        plt.scatter(*np.vstack(centres).T, c="r", marker="x")
         plt.show()
     return circles
