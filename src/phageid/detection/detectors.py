@@ -1,9 +1,6 @@
 from abc import ABC
-from typing import List
 
-import numpy as np
-from numpy.typing import NDArray
-
+from phageid.dtypes import ImageStack, PointStack
 from phageid.processing import Process
 from phageid.processing.kernels import GaussianKernel
 from phageid.processing.layers import (
@@ -16,7 +13,7 @@ from phageid.utils import find_first_peak
 
 
 class Detector(ABC):
-    def detect(self, data: NDArray[np.number]) -> List[NDArray[np.number]]:
+    def __call__(self, stack: ImageStack) -> PointStack:
         ...
 
 
@@ -31,5 +28,5 @@ class GaussianDetector(Detector):
         ]
     )
 
-    def detect(self, data: NDArray[np.number]) -> List[NDArray[np.number]]:
-        return self.process(data)
+    def __call__(self, stack: ImageStack) -> PointStack:
+        return self.process(stack)
