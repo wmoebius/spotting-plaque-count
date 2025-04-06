@@ -2,9 +2,7 @@
 name = "phageid"
 version = "0.1.0"
 description = "Automated counting of phage from image sequences."
-authors = [
-    {name = "Finley Gibson",email = "f.j.gibson@exeter.ac.uk"}
-]
+authors = [{ name = "Finley Gibson", email = "f.j.gibson@exeter.ac.uk" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -14,16 +12,17 @@ dependencies = [
     "opencv-python (>=4.11.0.86,<5.0.0.0)",
     "matplotlib (>=3.10.1,<4.0.0)",
     "toml (>=0.10.2,<0.11.0)",
-    "scikit-image (>=0.25.2,<0.26.0)"
+    "scikit-image (>=0.25.2,<0.26.0)",
 ]
 
 [tool.poetry]
-packages = [{include = "phageid", from = "src"}]
+packages = [{ include = "phageid", from = "src" }]
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
 jupyterlab = "^4.3.6"
+ruff = "^0.11.4"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -33,4 +32,7 @@ build-backend = "poetry.core.masonry.api"
 phageid = "phageid.__main__:main"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]  # Specifies the test directory
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 80
