@@ -3,9 +3,13 @@ from typing import List
 
 import click
 
-from phageid.detection import detect_phage
-from phageid.dtypes import ImageStack
-from phageid.read_write import parse_argument_dirs, read_images, write_images
+from phageid.dtypes import D_ImageStack, D_PointStack, ImageStack
+from phageid.read_write import (
+    parse_argument_dirs,
+    read_images,
+    read_stack,
+    write_stacks,
+)
 from phageid.segmentation import segment_samples
 from phageid.segmentation import segment_trays as _segment_trays
 
@@ -34,11 +38,11 @@ def segment_trays(input_dir, output_dir, output_filename, visualise):
     input_path, output_path = parse_argument_dirs(input_dir, output_dir)
     images: ImageStack = read_images(input_path)
     trays: List[ImageStack] = _segment_trays(images, visualise)
-    write_images(trays, output_path, output_filename)
+    write_stacks(trays, output_path, output_filename)
 
 
 @click.command()
-@click.argument("input_dir", required=True, type=click.Path(exists=True))
+@click.argument("input_file", required=True, type=click.Path(exists=True))
 @click.argument("output_dir", required=False, type=click.Path(), default=None)
 @click.option(
     "--visualise",
@@ -46,14 +50,13 @@ def segment_trays(input_dir, output_dir, output_filename, visualise):
     default=False,
     help="Enable visualisation of segmentation process.",
 )
-def detect(input_dir, output_dir):
+def detect(input_file, output_dir, visualise):
     # format directories
-    input_path, output_path = parse_argument_dirs(input_dir, output_dir)
-    images = read_images(input_path)
-    d_samples = segment_samples(images, visualise=visu)
-    # segment samples
-    detections = detect_phage(images)
-    # mash them back together
+    input_path, output_path = parse_argument_dirs(input_file, output_dir)
+    images: ImageStack = read_stack(input_path)
+    d_samples: D_ImageStack = segment_samples(images, visualise=visualise)
+    d_points: D_PointStack = NotImplemented # detect points
+    combined: ImageStack = NotImplemented   # Mash them back together
     # write to disk (add option to this)
 
 
