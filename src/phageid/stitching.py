@@ -137,7 +137,7 @@ def join_stacks_with_points(
     d_points: D_PointStack,
     spacing: int = 10,
     background_color: int = 0,
-) -> List[Tuple[np.ndarray, np.ndarray]]:
+) -> Tuple[List[np.ndarray], List[np.ndarray]]:
 
     np.testing.assert_array_equal(
         np.asarray(d_stacks.keys()),
@@ -146,5 +146,8 @@ def join_stacks_with_points(
     l_dimages = convert_image_stacks(d_stacks)
     l_dpoints = convert_point_stacks(d_points)
 
-    return [join_images_with_points(images, points, spacing, background_color)
+    pairings = [join_images_with_points(images, points, spacing, background_color)
         for images, points in zip(l_dimages, l_dpoints)]
+
+    images, points = zip(*pairings)
+    return images, points

@@ -1,5 +1,4 @@
 import logging
-from itertools import product
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -310,9 +309,14 @@ def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
         int
     )
 
-    centres = np.array(list(product(centre_xs, centre_ys)))
-    centre_inds = list(product(range(n_columns), range(n_rows)))
-    centres.shape
+    # centres = np.array(list(product(centre_xs, centre_ys)))
+    # centre_inds = list(product(range(n_rows), range(n_columns)))
+    centres = []
+    centre_inds = []
+    for i, cx in enumerate(centre_xs):
+        for j, cy in enumerate(centre_ys):
+            centres.append(np.array((cx, cy)))
+            centre_inds.append((j, i))
 
     circles = slice_circle_bounding_boxes(images, centres, radius * scaling_factor)
     circles = {ind: circ for ind, circ in zip(centre_inds, circles)}
