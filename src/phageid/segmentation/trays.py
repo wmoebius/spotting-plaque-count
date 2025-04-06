@@ -231,7 +231,6 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
         extract_subregions(images=images, corners=q_coord - pad_size)
         for q_coord in q_corners
     ]
-    logging.info(f"detected {len(trays)} trays")
 
     for tray in trays:
         if visualise:
@@ -239,4 +238,6 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
             plt.imshow(tray[-1])
             plt.show()
 
-    return [tray for tray in trays if validate_tray(tray)]
+    out = [tray for tray in trays if validate_tray(tray)]
+    logging.info(f"detected {len(out)} trays")
+    return out
