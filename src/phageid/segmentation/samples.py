@@ -112,7 +112,7 @@ def slice_image(
     return indices, slices
 
 
-def slice_circle_bounding_boxes(images, centers, radius):
+def slice_circle_bounding_boxes(images: ImageStack, centers, radius):
     """
     Slice the bounding boxes of circles from an image array.
 
@@ -126,16 +126,18 @@ def slice_circle_bounding_boxes(images, centers, radius):
     """
     bounding_boxes = []
 
+    images_ = np.stack(images, axis=0)
+
     max_shape = 0, 0, 0
     for x, y in centers:
         # Calculate the bounding box coordinates
         x_min = int(max(0, x - radius))
-        x_max = int(min(images.shape[2], x + radius + 1))
+        x_max = int(min(images_.shape[2], x + radius + 1))
         y_min = int(max(0, y - radius))
-        y_max = int(min(images.shape[1], y + radius + 1))
+        y_max = int(min(images_.shape[1], y + radius + 1))
 
         # Slice the bounding box from the image
-        bounding_box = images[:, y_min:y_max, x_min:x_max]
+        bounding_box = images_[:, y_min:y_max, x_min:x_max]
 
         if bounding_box.shape > max_shape:
             max_shape = bounding_box.shape
@@ -204,7 +206,6 @@ def pad_array(arr, target_shape):
 
 
 def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
-
     final_image = images[-1].copy()
 
     # load config
@@ -215,8 +216,6 @@ def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
         err_msg = f"invalid scaling factor {config['sample_segmentation']['scaling_factor']} specified in {FILE_CONFIG}: {e}"
         logging.error(err_msg)
         raise ValueError(err_msg)
-
-
 
     # Load slider values and limits from the TOML file
     slider_values = load_slider_values()
@@ -322,4 +321,5 @@ def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
         plt.figure()
         plt.imshow(final_image)
         plt.scatter(*centres.T, c="r", marker="x")
+        plt.show()
     return circles

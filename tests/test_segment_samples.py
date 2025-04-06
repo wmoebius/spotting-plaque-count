@@ -1,7 +1,9 @@
 from pathlib import Path
+
 import pytest
+
+from phageid.read_write import read_stack
 from phageid.segmentation.samples import segment_samples
-from shutil import rmtree
 
 
 @pytest.mark.parametrize(
@@ -13,12 +15,11 @@ from shutil import rmtree
     ],
 )
 def test_sample_segmentation(input_file):
+    # TODO: add config as an optional argument to segment_samples so that the
+    # output can be tested more thoroughly without depending on config.toml
+    # settings.
     assert input_file.is_file()
-    output_dir = Path(__file__).parent / ".test_resources/example_trays/out"
-    segment_samples(input_file=input_file, output_dir=output_dir, visualise=False)
+    images = read_stack(input_file)
+    returned = segment_samples(images, visualise=False)
 
-    assert output_dir.is_dir()
-    assert len(list(output_dir.iterdir())) > 0
-
-    if output_dir.is_dir():
-        rmtree(output_dir)
+    assert returned is not None
