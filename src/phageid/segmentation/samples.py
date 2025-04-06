@@ -1,12 +1,13 @@
-import numpy as np
-from pathlib import Path
-from matplotlib.widgets import Slider, Button
-import matplotlib.pyplot as plt
-from phageid import FILE_CONFIG
 import logging
-import toml
-from phageid import config
 from itertools import product
+
+import matplotlib.pyplot as plt
+import numpy as np
+import toml
+from matplotlib.widgets import Button, Slider
+
+from phageid import FILE_CONFIG, config
+from phageid.dtypes import D_ImageStack, ImageStack
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
@@ -190,8 +191,6 @@ def pad_array(arr, target_shape):
         numpy.ndarray: The padded array.
     """
     # Compute padding sizes
-    pad_height = max(0, target_shape[-2] - arr.shape[-2])  # Rows to add at the bottom
-    pad_width = max(0, target_shape[-1] - arr.shape[-1])  # Columns to add on the right
     pad_sizes = [max(0, target_shape[i] - arr.shape[i]) for i in range(arr.ndim)]
 
     # Pad only on the right and bottom
@@ -204,29 +203,8 @@ def pad_array(arr, target_shape):
     return out
 
 
-def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
-    # confirm dirs
-    if not input_file.is_file():
-        logging.error(f"Input file {input_file} does not exist.")
-        raise ValueError(f"Input file {input_file} does not exist.")
+def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
 
-    if not output_dir.is_dir():
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-            logging.info(f"Created output directory: {output_dir}")
-        except Exception:
-            logging.error(f"Output directory {output_dir} is not a valid directory.")
-            raise ValueError(
-                f"Output directory '{output_dir}' is not a valid directory."
-            )
-
-    # load images
-    try:
-        images = np.load(input_file)
-        logging.info(f"Loaded images from {input}")
-        assert isinstance(images, np.ndarray)
-    except Exception as e:
-        logging.error(f"Failed to load data from {input_file}: {e}")
     final_image = images[-1].copy()
 
     # load config
@@ -234,9 +212,11 @@ def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
         scaling_factor = int(config["sample_segmentation"]["scaling_factor"])
         logging.info(f"loaded scaling factor of: {scaling_factor}")
     except Exception as e:
-        logging.error(
-            f"invalid scaling factor {config['sample_segmentation']['scaling_factor']} specified in {FILE_CONFIG}: {e}"
-        )
+        err_msg = f"invalid scaling factor {config['sample_segmentation']['scaling_factor']} specified in {FILE_CONFIG}: {e}"
+        logging.error(err_msg)
+        raise ValueError(err_msg)
+
+
 
     # Load slider values and limits from the TOML file
     slider_values = load_slider_values()
@@ -279,7 +259,7 @@ def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
 
         # Create sliders for each parameter
         for i, (label, min_val, max_val, init_val) in enumerate(slider_params):
-            ax_slider = plt.axes([0.2, 0.4 - 0.045 * i, 0.65, 0.03])
+            ax_slider = plt.axes((0.2, 0.4 - 0.045 * i, 0.65, 0.03))
             slider = Slider(ax_slider, label, min_val, max_val, valinit=init_val)
             sliders[label] = slider
             slider_axes.append(ax_slider)
@@ -298,7 +278,7 @@ def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
             set_slider_values(sliders)
             plt.close(plt.gcf())
 
-        button_ax = plt.axes([0.4, 0.4 - 0.045 * (len(slider_params) + 1), 0.25, 0.06])
+        button_ax = plt.axes((0.4, 0.4 - 0.045 * (len(slider_params) + 1), 0.25, 0.06))
         button = Button(button_ax, "Set", color="lightblue", hovercolor="grey")
         button.on_clicked(on_button_clicked)
 
@@ -342,11 +322,4 @@ def segment_samples(input_file: Path, output_dir: Path, visualise: bool):
         plt.figure()
         plt.imshow(final_image)
         plt.scatter(*centres.T, c="r", marker="x")
-        # for c in circles[0, 0]:
-        #     plt.figure()
-        #     plt.imshow(c)
-
-    for (i, j), sample in circles.items():
-        out_path = output_dir / "sample_{:02d}_{:02d}.npy".format(i, j)
-        np.save(out_path, sample)
-        logging.info(f"Saved sample to {out_path}")
+    return circles
