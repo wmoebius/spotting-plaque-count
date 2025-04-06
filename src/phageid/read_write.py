@@ -1,12 +1,12 @@
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple, List
 
 import numpy as np
 from cv2 import imread
-from numpy.typing import NDArray
 
 from phageid import logging
+from phageid.dtypes import ImageStack
 
 
 def has_placeholder(s: str) -> bool:
@@ -30,7 +30,7 @@ def parse_argument_dirs(input_dir: str, output_dir: Optional[str]) -> Tuple[Path
     return input_path, output_path
 
 
-def read_images(image_dir: Path) -> List[NDArray[np.number]]:
+def read_images(image_dir: Path) -> ImageStack:
     ## load images
     image_paths = sorted(list(image_dir.iterdir()))
     rgb_images = [imread(str(path)) for path in image_paths if path.is_file()]
@@ -42,17 +42,20 @@ def read_images(image_dir: Path) -> List[NDArray[np.number]]:
     return images
 
 
-def write_images(images: List[NDArray[np.number]], write_dir: Path, file_str: str = "image_{:03d}"):
-        if write_dir.is_dir():
-            for i, image in enumerate(images):
+def write_stack(stack: ImageStack, write_path: Path)
+    images = np.vstack(stack)
+    try:
+        np.save(write_path, images)
+        logging.info("Wrote image file to {}".format(write_path))
+    except Exception as e:
+        logging.error("Failed to write image file to {} due to error: \n {}".format(write_path, e))
 
-                if not has_placeholder(file_str):
-                    # ensure there is a placeholder for the file name to prevent file overwriting
-                    file_str += "_{:03d}"
+def write_stacks(stacks: List[ImageStack], write_dir: Path, file_str: str = "image_{:03d}"):
+    for i, stack in enumerate(stacks):
+        if not has_placeholder(file_str):
+            # ensure there is a placeholder for the file name to prevent file overwriting
+            file_str += "_{:03d}"
 
-                file_path = write_dir / file_str.format(i)
-                try:
-                    np.save(file_path, image)
-                    logging.info("Wrote image file to {}".format(file_path))
-                except Exception as e:
-                    logging.error("Failed to write image file to {} due to error: \n {}".format(file_path, e))
+        # write to file path
+        file_path = write_dir / file_str.format(i)
+        write_stack(stack, file_path)

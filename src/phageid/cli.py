@@ -1,8 +1,12 @@
 
+from typing import List
+
 import click
 
 from phageid.detection import detect_phage
+from phageid.dtypes import ImageStack
 from phageid.read_write import parse_argument_dirs, read_images, write_images
+from phageid.segmentation import segment_samples
 from phageid.segmentation import segment_trays as _segment_trays
 
 
@@ -28,8 +32,8 @@ def cli():
 def segment_trays(input_dir, output_dir, output_filename, visualise):
     """Segment trays from raw images."""
     input_path, output_path = parse_argument_dirs(input_dir, output_dir)
-    images = read_images(input_path)
-    trays = _segment_trays(images, visualise)
+    images: ImageStack = read_images(input_path)
+    trays: List[ImageStack] = _segment_trays(images, visualise)
     write_images(trays, output_path, output_filename)
 
 
@@ -46,6 +50,7 @@ def detect(input_dir, output_dir):
     # format directories
     input_path, output_path = parse_argument_dirs(input_dir, output_dir)
     images = read_images(input_path)
+    d_samples = segment_samples(images, visualise=visu)
     # segment samples
     detections = detect_phage(images)
     # mash them back together
