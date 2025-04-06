@@ -1,8 +1,10 @@
+from typing import Dict, Tuple
+
 import numpy as np
 
 
 def join_images(
-    images: dict[tuple[int, int], np.ndarray],
+    images: Dict[Tuple[int, int], np.ndarray],
     spacing: int = 10,
     background_color: int = 0,
 ) -> np.ndarray:
@@ -58,11 +60,11 @@ def join_images(
 
 
 def join_images_with_points(
-    images: dict[tuple[int, int], np.ndarray],
-    points: dict[tuple[int, int], np.ndarray],
+    images: Dict[Tuple[int, int], np.ndarray],
+    points: Dict[Tuple[int, int], np.ndarray],
     spacing: int = 10,
     background_color: int = 0,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Joins a dictionary of images into a single image, arranging them based on their
     (row, col) positions and adding spacing between them.
