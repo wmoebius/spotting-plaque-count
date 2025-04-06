@@ -61,13 +61,11 @@ class Erosion(ImageLayer):
         self.iterations = iterations
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        stack_ = np.vstack(stack)
         kernel = np.ones((self.kernel_size, self.kernel_size), dtype=np.uint8)
-        processed = cv2.erode(
-            stack_.astype(np.uint8), kernel, iterations=self.iterations
-        )
-        return [im for im in processed.astype(np.float64)]
-
+        processed = [cv2.erode(
+            s.astype(np.uint8), kernel, iterations=self.iterations
+        ) for s in stack]
+        return processed
 
 class Dilation(Layer):
     def __init__(self, kernel_size: int = 3, iterations: int = 1):
@@ -75,12 +73,11 @@ class Dilation(Layer):
         self.iterations = iterations
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        stack_ = np.vstack(stack)
         kernel = np.ones((self.kernel_size, self.kernel_size), dtype=np.uint8)
-        processed = cv2.dilate(
-            stack_.astype(np.uint8), kernel, iterations=self.iterations
-        )
-        return [im for im in processed.astype(np.float64)]
+        processed = [cv2.dilate(
+            s.astype(np.uint8), kernel, iterations=self.iterations
+        ) for s in stack]
+        return processed
 
 
 class GaussianBlur(Layer):
