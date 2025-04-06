@@ -1,5 +1,6 @@
 import pytest
-from phageid.convolution.kernels import GaussianKernel, RingKernel
+
+from phageid.processing.kernels import GaussianKernel, RingKernel
 
 
 # Test that the Gaussian and Ring kernels produce kernels of the correct size
