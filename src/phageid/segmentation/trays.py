@@ -172,17 +172,17 @@ def get_rect_corners(x_edges, y_edges):
     return trays
 
 
-def validate_tray(tray):
-    return tray.std() > 10
+def validate_tray(tray: ImageStack):
+    tray_ = np.stack(tray, axis=0).mean(axis=0)
+    return tray_.std(axis=0).mean() > 10
 
 
 def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
-
     # pad image
     pad_size = 10
 
     # get clearest view of phage sample spots
-    image = np.vstack(images).min(axis=0).astype(int)
+    image = np.stack(images, axis=0).min(axis=0).astype(int)
     image[image == 255] = 0
     image = np.pad(
         image,
@@ -191,8 +191,8 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
     )
 
     if visualise:
-        plt.imshow(image)
-        plt.show()
+        fig, ax = plt.subplots()
+        ax.imshow(image)
 
     # use pixel variance to fit step function to identify tray edges.
     xav = image.std(axis=0) > 10
@@ -200,29 +200,31 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
     x_coords = find_step_edges(xav)
 
     if visualise:
-        plt.plot(image.mean(axis=0) / (image.mean(axis=0).max()))
-        plt.plot(xav, c="C1")
+        ax.plot(image / (image.mean(axis=0).max()))
+        ax.plot(xav, c="C1")
 
         for xc in x_coords:
-            plt.axvline(xc, c="r", linestyle=(0, (5, 10)), linewidth=1)
+            ax.axvline(xc, c="r", linestyle=(0, (5, 10)), linewidth=1)
 
     yav = image.std(axis=1) > 10
     yav = gaussian_filter1d(yav, 10.0)
     y_coords = find_step_edges(yav)
 
     if visualise:
-        plt.plot(image.mean(axis=1) / (image.mean(axis=1).max()), alpha=0.4)
-        plt.plot(yav, c="C1")
         for yc in y_coords:
-            plt.axvline(yc, c="r", linestyle=(0, (5, 10)), linewidth=1)
+            ax.axhline(yc, c="r", linestyle=(0, (5, 10)), linewidth=1)
+
+        fig.show()
 
     # get corners from all intersections of step edges
     q_corners = get_rect_corners(x_edges=x_coords, y_edges=y_coords)
 
     if visualise:
+        plt.figure()
         plt.imshow(np.float32(image), alpha=0.5, cmap="gray")
         for i, qc in enumerate(q_corners):
             plt.scatter(*qc.T, marker="x", s=50, c=f"C{i}")
+        plt.show()
 
     # extract tray subregions
     trays = [
@@ -237,4 +239,4 @@ def segment_trays(images: ImageStack, visualise: bool) -> List[ImageStack]:
             plt.imshow(tray[-1])
             plt.show()
 
-    return trays
+    return [tray for tray in trays if validate_tray(tray)]

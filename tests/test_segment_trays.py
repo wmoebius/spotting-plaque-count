@@ -1,8 +1,11 @@
-import pytest
 from pathlib import Path
-from phageid.segmentation.tray import segment_trays
-import numpy as np
-import shutil
+
+import pytest
+
+from typing import List
+from phageid.read_write import read_images
+from phageid.segmentation.trays import segment_trays
+from phageid.dtypes import ImageStack
 
 
 @pytest.mark.parametrize(
@@ -12,21 +15,17 @@ import shutil
     ],
 )
 def test_tray_segmentation(input_dir, n_trays):
-    output_dir = input_dir / "segmented_trays"
     assert input_dir.is_dir()
 
-    segment_trays(input_dir=input_dir, output_dir=output_dir, visualise=False)
+    images = read_images(input_dir)
+    returned: List[ImageStack] = segment_trays(images=images, visualise=False)
 
-    assert output_dir.is_dir()
-
-    images = [np.load(path) for path in output_dir.iterdir()]
-    assert len(images) == n_trays
+    assert len(returned) == n_trays
 
     # check dimensions
-    for image in images:
-        n, h, w = image.shape
-        assert n == len([file for file in input_dir.iterdir() if file.is_file()])
-        assert h == pytest.approx(2900, abs=100)
-        assert w == pytest.approx(1980, abs=25)
-
-    shutil.rmtree(output_dir)
+    for stack in returned:
+        assert len(stack) == 2
+        for image in stack:
+            h, w = image.shape
+            assert h == pytest.approx(2900, abs=100)
+            assert w == pytest.approx(1980, abs=25)
