@@ -309,8 +309,6 @@ def segment_samples(images: ImageStack, visualise: bool) -> D_ImageStack:
         int
     )
 
-    # centres = np.array(list(product(centre_xs, centre_ys)))
-    # centre_inds = list(product(range(n_rows), range(n_columns)))
     centres = []
     centre_inds = []
     for i, cx in enumerate(centre_xs):
