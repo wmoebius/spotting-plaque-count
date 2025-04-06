@@ -1,6 +1,14 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
+
+from phageid.dtypes import (
+    D_ImageStack,
+    D_PointStack,
+    Image,
+    Points,
+)
+from phageid.utils import convert_image_stacks, convert_point_stacks
 
 
 def join_images(
@@ -60,8 +68,8 @@ def join_images(
 
 
 def join_images_with_points(
-    images: Dict[Tuple[int, int], np.ndarray],
-    points: Dict[Tuple[int, int], np.ndarray],
+    images: Dict[Tuple[int, int], Image],
+    points: Dict[Tuple[int, int], Points],
     spacing: int = 10,
     background_color: int = 0,
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -121,3 +129,22 @@ def join_images_with_points(
         y_offset += row_heights[r] + spacing
 
     return combined_image, np.vstack(combined_points)
+
+
+
+def join_stacks_with_points(
+    d_stacks: D_ImageStack,
+    d_points: D_PointStack,
+    spacing: int = 10,
+    background_color: int = 0,
+) -> List[Tuple[np.ndarray, np.ndarray]]:
+
+    np.testing.assert_array_equal(
+        np.asarray(d_stacks.keys()),
+        np.asarray(d_points.keys()))
+
+    l_dimages = convert_image_stacks(d_stacks)
+    l_dpoints = convert_point_stacks(d_points)
+
+    return [join_images_with_points(images, points, spacing, background_color)
+        for images, points in zip(l_dimages, l_dpoints)]

@@ -1,7 +1,12 @@
-import numpy as np
-import numpy.typing as npt
 from pathlib import Path
+from typing import Dict, List, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+from numpy.typing import NDArray
 from scipy.signal import find_peaks
+
+from phageid.dtypes import D_ImageStack, D_PointStack, Image, Points
 
 DIR_ROOT = Path(__file__).parent.parent.parent
 
@@ -28,7 +33,7 @@ def image_to_cartesian(coordinates: np.ndarray) -> np.ndarray:
     return cartesian_coordinates
 
 
-def normalise(array: npt.NDArray) -> npt.NDArray[np.float64]:
+def normalise(array: NDArray) -> NDArray[np.float64]:
     rnge = array.max() - array.min()
     return (array - array.min()) / rnge
 
@@ -71,3 +76,42 @@ def find_first_peak(image, bins=256, plot=False):
         return first_peak_bin
     else:
         return None
+
+
+
+def convert_image_stacks(d_stack: D_ImageStack) -> List[Dict[Tuple[int, int], Image]]:
+    # TODO: remove the neccesity for this function
+    if not d_stack:
+        return []
+
+    # Assume all lists in the dict are the same length
+    stack_length = len(next(iter(d_stack.values())))
+
+    # Transpose the data
+    result: List[Dict[Tuple[int, int], Image]] = []
+    for i in range(stack_length):
+        frame: Dict[Tuple[int, int],Image] = {}
+        for coord, image_stack in d_stack.items():
+            frame[coord] = image_stack[i]
+        result.append(frame)
+
+    return result
+
+
+def convert_point_stacks(d_stack: D_PointStack) -> List[Dict[Tuple[int, int], Points]]:
+    # TODO: remove the neccesity for this function
+    if not d_stack:
+        return []
+
+    # Assume all lists in the dict are the same length
+    stack_length = len(next(iter(d_stack.values())))
+
+    # Transpose the data
+    result: List[Dict[Tuple[int, int], Points]] = []
+    for i in range(stack_length):
+        frame: Dict[Tuple[int, int], Points] = {}
+        for coord, image_stack in d_stack.items():
+            frame[coord] = image_stack[i]
+        result.append(frame)
+
+    return result
