@@ -1,3 +1,4 @@
+from posix import error
 import re
 from pathlib import Path
 from typing import Optional, Tuple, List
@@ -40,6 +41,18 @@ def read_images(image_dir: Path) -> ImageStack:
     images = [np.where(image < 1, 1, image).astype(int) for image in images]
     del rgb_images
     return images
+
+def read_stack(stack_path: Path) -> ImageStack:
+    try:
+        np_stack: np.ndarray = np.load(stack_path)
+        logging.info("Read image data from {}".format(stack_path))
+        stack: ImageStack = [image for image in np_stack]
+    except Exception as e:
+        err = "Failed to read image from {} due to: {}".format(stack_path, e)
+        logging.error(err)
+        raise FileNotFoundError(err)
+
+    return stack
 
 
 def write_stack(stack: ImageStack, write_path: Path)
