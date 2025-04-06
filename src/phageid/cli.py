@@ -3,7 +3,8 @@ from typing import List
 
 import click
 
-from phageid.dtypes import D_ImageStack, ImageStack
+from phageid.detection.detection import detect_dstack
+from phageid.dtypes import D_ImageStack, D_PointStack, ImageStack
 from phageid.read_write import (
     parse_argument_dirs,
     parse_detection_args,
@@ -54,8 +55,8 @@ def detect(input_file, output_dir, visualise):
     # format directories
     input_path, output_path = parse_detection_args(input_file, output_dir)
     images: ImageStack = read_stack(input_path)
-    d_samples: D_ImageStack = segment_samples(images, visualise=visualise)
-    # d_points: D_PointStack = NotImplemented # detect points
+    d_images: D_ImageStack = segment_samples(images, visualise=visualise)
+    d_points: D_PointStack = detect_dstack(d_images)
     # combined: ImageStack = NotImplemented   # Mash them back together
     # write to disk (add option to this)
 

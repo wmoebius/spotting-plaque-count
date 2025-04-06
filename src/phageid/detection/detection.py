@@ -1,15 +1,20 @@
 
-from typing import List
 
-import numpy as np
-from numpy.typing import NDArray
+
+from phageid.dtypes import D_ImageStack, D_PointStack, ImageStack, PointStack
 
 from .detectors import GaussianDetector
-from phageid.dtypes import ImageStack, PointStack
 
 
-def detect_phage(images: ImageStack) -> PointStack:
+def detect_phage(stack: ImageStack) -> PointStack:
     detector = GaussianDetector()
-    return detector.detect(np.vstack(images))
+    return detector(stack)
 
-def detect_
+def detect_dstack(d_stack: D_ImageStack) -> D_PointStack:
+    d_points = {}
+
+    for (i, j), stack in d_stack.items():
+        points = detect_phage(stack)
+        d_points[i, j] = points
+
+    return d_points
