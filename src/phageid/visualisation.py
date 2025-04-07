@@ -2,11 +2,12 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-from IPython.display import HTML
+
+# from IPython.display import HTML
 from matplotlib.animation import FuncAnimation
 
 
-def video_image_sequence(images: List[np.ndarray], fps: int = 30) -> HTML:
+def video_image_sequence(images: List[np.ndarray], fps: int = 30):
     """
     Displays a sequence of images as a video interactively in a Jupyter notebook.
 
@@ -48,7 +49,7 @@ def video_image_sequence(images: List[np.ndarray], fps: int = 30) -> HTML:
     plt.close(fig)
 
     # Display the animation in the notebook
-    return HTML(anim.to_jshtml())
+    # return HTML(anim.to_jshtml())
 
 
 def video_image_sequence_with_scatter(
@@ -56,7 +57,7 @@ def video_image_sequence_with_scatter(
     points: List[np.ndarray],
     fps: int = 30,
     persist: bool = False,
-) -> HTML:
+):
     """
     Displays a sequence of images as a video interactively in a Jupyter notebook,
     overlaying scatter points on each frame.
@@ -111,4 +112,4 @@ def video_image_sequence_with_scatter(
     plt.close(fig)
 
     # Display the animation in the notebook
-    return HTML(anim.to_jshtml())
+    # return HTML(anim.to_jshtml())

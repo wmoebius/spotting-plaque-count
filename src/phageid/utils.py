@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List, Tuple
 
 import matplotlib.pyplot as plt
@@ -7,10 +6,6 @@ from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
 from phageid.dtypes import D_ImageStack, D_PointStack, Image, Points
-
-DIR_ROOT = Path(__file__).parent.parent.parent
-
-FILE_CONFIG = DIR_ROOT / "config.toml"
 
 
 def image_to_cartesian(coordinates: np.ndarray) -> np.ndarray:
@@ -78,7 +73,6 @@ def find_first_peak(image, bins=256, plot=False):
         return None
 
 
-
 def convert_image_stacks(d_stack: D_ImageStack) -> List[Dict[Tuple[int, int], Image]]:
     # TODO: remove the neccesity for this function
     if not d_stack:
@@ -90,7 +84,7 @@ def convert_image_stacks(d_stack: D_ImageStack) -> List[Dict[Tuple[int, int], Im
     # Transpose the data
     result: List[Dict[Tuple[int, int], Image]] = []
     for i in range(stack_length):
-        frame: Dict[Tuple[int, int],Image] = {}
+        frame: Dict[Tuple[int, int], Image] = {}
         for coord, image_stack in d_stack.items():
             frame[coord] = image_stack[i]
         result.append(frame)

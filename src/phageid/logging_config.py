@@ -1,14 +1,16 @@
 import logging
-from phageid.utils import DIR_ROOT
+from pathlib import Path
+
+from platformdirs import user_log_dir
 
 # Create a 'logs' folder if it doesn't exist
-log_dir = DIR_ROOT / "logs"
+log_dir = Path(user_log_dir("phageid"))
 if not log_dir.is_dir():
     log_dir.mkdir(parents=True)
 
 # Configure logging
 logging.basicConfig(
-    level=logging.ERROR,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_dir / "dev.log"),

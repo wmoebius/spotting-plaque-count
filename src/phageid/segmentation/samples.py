@@ -5,14 +5,14 @@ import numpy as np
 import toml
 from matplotlib.widgets import Button, Slider
 
-from phageid import FILE_CONFIG, config
 from phageid.dtypes import D_ImageStack, ImageStack
+from phageid.user_config import PATH_CONFIG, config
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 
 def load_slider_values():
-    config = toml.load(FILE_CONFIG)
+    config = toml.load(PATH_CONFIG)
     slider_config = {
         k: config[k]
         for k in [
@@ -39,7 +39,7 @@ def set_slider_values(sliders):
     import toml
 
     # Load the existing TOML data
-    config = toml.load(FILE_CONFIG)
+    config = toml.load(PATH_CONFIG)
 
     # Update only the `current` values
     config["x_spacing"]["current"] = float(sliders["x_spacing"].val)
@@ -51,7 +51,7 @@ def set_slider_values(sliders):
     config["radius"]["current"] = float(sliders["radius"].val)
 
     # Write the updated data back to the TOML file
-    with open(FILE_CONFIG, "w") as file:
+    with open(PATH_CONFIG, "w") as file:
         toml.dump(config, file)
 
 
