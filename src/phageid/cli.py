@@ -10,8 +10,8 @@ from phageid.read_write import (
     parse_detection_args,
     read_images,
     read_stack,
-    write_stacks,
     write_plots,
+    write_stacks,
 )
 from phageid.segmentation import segment_samples
 from phageid.segmentation import segment_trays as _segment_trays
@@ -69,8 +69,6 @@ def detect(input_file, output_dir, visualise):
         plt.show()
 
     write_plots(images=images, points=points, dir_path=output_path)
-
-    # write sequence to disk (add option to this)
 
 
 # Add commands to CLI group

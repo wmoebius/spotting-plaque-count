@@ -25,3 +25,19 @@ phageid detect path/to/input.npy output/dir/ --visualise
 ```
 
 each has the optional `--visualise` flag. Which Shows some of the process. It is recommended to use this flag initually, until you are happy that the process is working as intended.
+
+## Configuration
+
+On first running, the program generates a configuration file at the following locations
+
+Mac/Linux:
+
+```sh
+~/.config/phageid/config.toml
+```
+
+Windows:
+
+```sh
+C:\Users\<YourUsername>\AppData\Roaming\phageid\config.toml
+```
