@@ -18,7 +18,7 @@ class TestErosionLayer:
         for o in out:
             print(o.shape)
             assert o.shape == (10, 10)
-            assert (o == 1.).sum() < (input[0]==1.).sum()
+            assert (o == 1.0).sum() < (input[0] == 1.0).sum()
 
 
 class TestDilationLayer:
@@ -36,4 +36,23 @@ class TestDilationLayer:
         for o in out:
             print(o.shape)
             assert o.shape == (10, 10)
-            assert (o == 1.).sum() > (input[0]==1.).sum()
+            assert (o == 1.0).sum() > (input[0] == 1.0).sum()
+
+
+class TestSubtractByFrame:
+    from phageid.processing.layers import SubtractByFrame
+
+    def setup_class(cls):
+        cls.operation = cls.SubtractByFrame
+        data = [np.ones(5, 5) * i for i in range(3)]
+
+    def test_subtract_constant(self):
+        sbf = self.operation(value=1)
+
+        result = sbf(self.data)
+
+        assert isinstance(result, list)
+
+        for i, layer in enumerate(result):
+            assert (layer == i).all()
+            assert layer.shape == (5, 5)
