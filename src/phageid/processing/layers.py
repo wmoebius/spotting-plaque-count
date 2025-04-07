@@ -14,12 +14,14 @@ from .kernels import Kernel
 
 T = TypeVar("T", bound="StackBase")
 
+
 class Layer(Protocol[T]):
     def __call__(self, stack: T) -> T: ...
 
 
 class ImageLayer(Layer):
     def __call__(self, stack: ImageStack) -> ImageStack: ...
+
 
 class PointLayer(Layer):
     def __call__(self, stack: ImageStack | PointStack) -> ImageStack: ...
@@ -63,10 +65,12 @@ class Erosion(ImageLayer):
 
     def __call__(self, stack: ImageStack) -> ImageStack:
         kernel = np.ones((self.kernel_size, self.kernel_size), dtype=np.uint8)
-        processed = [cv2.erode(
-            s.astype(np.uint8), kernel, iterations=self.iterations
-        ) for s in stack]
+        processed = [
+            cv2.erode(s.astype(np.uint8), kernel, iterations=self.iterations)
+            for s in stack
+        ]
         return processed
+
 
 class Dilation(Layer):
     def __init__(self, kernel_size: int = 3, iterations: int = 1):
@@ -75,9 +79,10 @@ class Dilation(Layer):
 
     def __call__(self, stack: ImageStack) -> ImageStack:
         kernel = np.ones((self.kernel_size, self.kernel_size), dtype=np.uint8)
-        processed = [cv2.dilate(
-            s.astype(np.uint8), kernel, iterations=self.iterations
-        ) for s in stack]
+        processed = [
+            cv2.dilate(s.astype(np.uint8), kernel, iterations=self.iterations)
+            for s in stack
+        ]
         return processed
 
 
@@ -109,7 +114,6 @@ class Difference(ImageLayer):
             for i in range(num_stacks - self.separation)
         ]
         return differences
-
 
 
 class MaskReplace(ImageLayer):
@@ -185,14 +189,12 @@ class SubtractByFrame(ImageLayer):
         self.value = value
 
     def __call__(self, stack: ImageStack, **kwargs) -> ImageStack:
-        stack_ = np.vstack(stack)
-
         if isinstance(self.value, Callable):
-            for i in range(stack_.shape[0]):
-                stack_[i] -= self.value(stack_[i])
+            for i, layer in enumerate(stack):
+                stack[i] -= self.value(layer)
         elif isinstance(self.value, (float, int, np.nan)):
-            for i in range(stack_.shape[0]):
-                stack_[i] -= self.value
+            for i, layer in enumerate(stack):
+                stack[i] -= self.value
         else:
             logging.error(
                 f"Bad argument. value should be number or callable, instead found: {type(self.value)}",
@@ -200,7 +202,7 @@ class SubtractByFrame(ImageLayer):
             raise ValueError(
                 f"Bad argument. value should be number or callable, instead found: {type(self.value)}",
             )
-        return [img for img in stack_]
+        return stack
 
 
 class Subtract(Layer):
@@ -251,14 +253,12 @@ class PeakFinder(PointLayer):
 
 
 class AgglomeratePeaks(PointLayer):
-
     def __init__(self, min_distance: int):
         self.min_distance = min_distance
 
     def __call__(self, stack: PointStack) -> PointStack:
         out = [stack[0]]
         for previous, current in zip(stack[:-1], stack[1:]):
-
             if previous.shape[0] > 0:
                 m = cdist(current, np.vstack(out), metric="euclidean")
                 min_dist = m.min(axis=1)
