@@ -104,13 +104,12 @@ class Difference(ImageLayer):
         self.separation = separation
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        stack_ = np.vstack(stack)
-        num_stacks = stack_.shape[0]
+        num_stacks = len(stack)
         if self.separation < 1 or self.separation >= num_stacks:
             raise ValueError(f"Separation must be between 1 and {num_stacks - 1}.")
 
         differences = [
-            stack_[i + self.separation] - stack_[i]
+            stack[i + self.separation] - stack[i]
             for i in range(num_stacks - self.separation)
         ]
         return differences
