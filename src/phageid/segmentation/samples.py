@@ -5,8 +5,8 @@ import numpy as np
 import toml
 from matplotlib.widgets import Button, Slider
 
+from phageid._config import PATH_CONFIG, config
 from phageid.dtypes import D_ImageStack, ImageStack
-from phageid.user_config import PATH_CONFIG, config
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
