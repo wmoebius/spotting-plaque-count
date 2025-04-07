@@ -1,18 +1,27 @@
-### use instructions
+# phageid
+
+A command-line toolfor automating phage plaque counting.
+
+## installation instructions
+
+The whole project installs with pip:
+
 ```sh
-pip install .   
-```
-then run with
-```
-python -m phageid      
+pip git+https://github.com/FinleyGibson/phageid
 ```
 
-then binary lives at:
-/home/finley/Work/RDS/projects/phageid/repos/phageid/.venv/bin/phageid 
+## Usage
 
+The project has two functions the first is to split the individual trays out of the original images:
 
-### dev instructions
 ```sh
-pip install -e .   
+phageid path/to/image/dir/ output/dir/
 ```
 
+and then to detect the phage plaques in the .npy files produced:
+
+```sh
+phageid detect path/to/input.npy output/dir/ --visualise
+```
+
+each has the optional `--visualise` flag. Which Shows some of the process. It is recommended to use this flag initually, until you are happy that the process is working as intended.
