@@ -14,7 +14,6 @@ class Process(ABC):
     def __init__(self, layers: List[Layer]):
         self.layers: List[Layer, ..., PointLayer] = layers
 
-
     def __call__(self, stack: ImageStack) -> PointStack:
         for layer in self.layers:
             stack = layer(stack)

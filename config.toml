@@ -1,12 +1,12 @@
 [x_spacing]
 min = 10
 max = 100
-current = 20.733944954128436
+current = 20.66031313818924
 
 [x_offset]
 min = 0
 max = 100
-current = 28.863796753705003
+current = 32.53914227365555
 
 [y_spacing]
 min = 0
@@ -16,7 +16,7 @@ current = 21.6890143495648
 [y_offset]
 min = 0
 max = 100
-current = 16.5137614678899
+current = 31.041524846834584
 
 [rows]
 min = 1

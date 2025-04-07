@@ -8,7 +8,7 @@ if not log_dir.is_dir():
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.ERROR,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_dir / "dev.log"),
