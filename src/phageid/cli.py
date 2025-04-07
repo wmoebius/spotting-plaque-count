@@ -62,8 +62,7 @@ def detect(input_file, output_dir, visualise):
 
     if visualise:
         vid = video_image_sequence_with_scatter(
-            images, points, save_path=output_path / "plt_video"
-        )
+            images, points)
         # plt.imshow(images[-1])
         # plt.scatter(*points[-1].T, marker="x", c="r")
         plt.show()
