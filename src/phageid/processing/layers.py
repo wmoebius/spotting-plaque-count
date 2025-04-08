@@ -29,15 +29,28 @@ class PointLayer(Layer):
 
 class Threshold(ImageLayer):
     def __init__(
-        self, thresh: np.number, above: bool = True, allow_equal: bool = False
+        self,
+        thresh: Union[np.number, Callable],
+        above: bool = True,
+        allow_equal: bool = False,
     ):
         self.thresh = thresh
         self.above = above
         self.allow_equal = allow_equal
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        op = getattr(np, "greater") if self.above else getattr(np, "less")
-        return op(stack, self.thresh).astype(np.int64)
+        if self.above:
+            op = np.greater
+        else:
+            op = np.less
+
+        if isinstance(self.thresh, Callable):
+            for i, layer in enumerate(stack):
+                stack[i] = op(layer, self.thresh(layer))
+        elif isinstance(self.thresh, (float, int, np.nan)):
+            for i, layer in enumerate(stack):
+                stack[i] = op(layer, self.thresh)
+        return stack
 
 
 class Normalise(ImageLayer):
@@ -94,7 +107,7 @@ class GaussianBlur(Layer):
     def __call__(self, stack: ImageStack) -> ImageStack:
         for i, img in enumerate(stack):
             stack[i] = cv2.GaussianBlur(
-                img.astype(np.float32), (self.kernel_size, self.kernel_size), self.sigma
+                img.astype(float), (self.kernel_size, self.kernel_size), self.sigma
             )
         return stack
 
@@ -148,39 +161,26 @@ class MaskReplace(ImageLayer):
 
 class ThreshReplace(ImageLayer):
     def __init__(
-        self, thresh: float, replace: Union[np.number, str], above: bool = True
+        self, thresh: float, value: Union[np.number, Callable], above: bool = True
     ):
         self.thresh = thresh
-        self.replace = replace
+        self.value = value
         self.above = above
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        stack_ = np.stack(stack)
-        if isinstance(self.replace, str):
-            try:
-                op = getattr(np, self.replace)
-            except AttributeError:
-                raise ValueError(
-                    f"replace value parsed to ThreshReplace not valid. Received {self.replace}"
-                )
-            values = op(stack_, axis=(1, 2), keepdims=True)
-        else:
-            values = np.ones(stack_.shape[0]) * self.replace
-
         if self.above:
-            mask = stack_ > self.thresh
+            op = np.greater
         else:
-            mask = stack_ < self.thresh
+            op = np.less
 
-        # TODO: changed the below lines but did not test. Need to test and confirm.
-        # TODO: This could easily be modified to use MaskReplace and reduce codebase
-        # size and increase maintainability.
-        # stack_[mask] = np.take_along_axis(
-        stack_[:, mask] = np.take_along_axis(
-            values, np.zeros_like(stack_, dtype=int), axis=0
-        )[mask]
+        if isinstance(self.value, Callable):
+            for i, layer in enumerate(stack):
+                stack[i][op(layer, self.thresh)] = self.value(layer)
+        elif isinstance(self.value, (float, int, np.nan)):
+            for i, layer in enumerate(stack):
+                stack[i][op(layer, self.thresh)] = self.value
 
-        return [im for im in stack_]
+        return stack
 
 
 class SubtractByFrame(ImageLayer):
@@ -233,21 +233,11 @@ class Convolution(ImageLayer):
 
 
 class PeakFinder(PointLayer):
-    def __init__(self, min_distance: int, threshold_rel: float, threshold_abs: float):
-        self.min_distance = min_distance
-        self.threshold_rel = threshold_rel
-        self.threshold_abs = threshold_abs
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     def __call__(self, stack: ImageStack) -> PointStack:
-        peaks = [
-            peak_local_max(
-                im,
-                min_distance=self.min_distance,
-                threshold_rel=self.threshold_rel,
-                threshold_abs=self.threshold_abs,
-            )
-            for im in stack
-        ]
+        peaks = [peak_local_max(im, **self.kwargs) for im in stack]
         return [image_to_cartesian(pk) for pk in peaks]
 
 
@@ -269,3 +259,14 @@ class AgglomeratePeaks(PointLayer):
                 out.append(current)
 
         return out
+
+
+class LayerProduct(PointLayer):
+    def __init__(self, values: ImageStack):
+        self.values = values
+
+    def __call__(self, stack: ImageStack) -> ImageStack:
+        for (i, layer), val in zip(enumerate(stack), self.values):
+            stack[i] = layer * val
+
+        return stack

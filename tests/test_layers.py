@@ -67,3 +67,56 @@ class TestSubtractByFrame:
 
         for i, layer in enumerate(result):
             nptest.assert_array_almost_equal(layer, np.zeros_like(layer))
+
+
+class TestThresh:
+    from phageid.processing.layers import Threshold
+
+    def setup_class(cls):
+        cls.operation = cls.Threshold
+        cls.data = [np.pad(np.ones((3, 3)), 1) for _ in range(5)]
+
+    def test_threshold_constant(self):
+        # replace all values below 0.5 with 1.0
+        thresh = 0.5
+        op = self.operation(thresh=thresh, above=True)
+
+        result = op(self.data)
+
+        nptest.assert_array_equal(np.stack(result), np.stack((self.data)))
+
+    def test_threshold_callable(self):
+        # replace all values below 0.5 with 1.0
+        thresh = np.mean
+        op = self.operation(thresh=thresh, above=True)
+
+        result = op(self.data)
+
+        nptest.assert_array_equal(np.stack(result), np.stack((self.data)))
+
+
+class TestThreshReplace:
+    from phageid.processing.layers import ThreshReplace
+
+    def setup_class(cls):
+        cls.operation = cls.ThreshReplace
+        cls.data = [np.pad(np.ones((3, 3)), 1) for _ in range(5)]
+
+    def test_thresh_replace(self):
+        # thresh at constant value: 0.5
+        thresh = 0.5
+        value = 1.0
+        op = self.operation(thresh=thresh, value=value, above=False)
+
+        result = op(self.data)
+
+        nptest.assert_array_equal(np.stack(result), np.ones((5, 5, 5)))
+
+    def test_thresh_replace_callable(self):
+        # thresh at mean value
+        thresh = 0.5
+        value = np.max
+        op = self.operation(thresh=thresh, value=value, above=False)
+
+        result = op(self.data)
+        nptest.assert_array_equal(np.stack(result), np.ones((5, 5, 5)))
