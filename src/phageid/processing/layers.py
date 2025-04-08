@@ -46,10 +46,10 @@ class Threshold(ImageLayer):
 
         if isinstance(self.thresh, Callable):
             for i, layer in enumerate(stack):
-                op(layer, self.thresh(layer))
+                stack[i] = op(layer, self.thresh(layer))
         elif isinstance(self.thresh, (float, int, np.nan)):
             for i, layer in enumerate(stack):
-                op(layer, self.thresh)
+                stack[i] = op(layer, self.thresh)
         return stack
 
 
