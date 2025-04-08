@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
+from typing import Optional
 
 from phageid.dtypes import D_ImageStack, D_PointStack, Image, Points
 
@@ -33,7 +34,7 @@ def normalise(array: NDArray) -> NDArray[np.float64]:
     return (array - array.min()) / rnge
 
 
-def find_first_peak(image, bins=256, plot=False):
+def find_first_peak(image, bins: Optional[int] = None, plot=False):
     """
     Finds the first peak in the histogram of intensity values in a NumPy array.
 
@@ -46,10 +47,14 @@ def find_first_peak(image, bins=256, plot=False):
     - first_peak_intensity: float or None, the intensity value of the first peak.
     """
     # Compute histogram
-    hist_values, bin_edges = np.histogram(image, bins=np.arange(bins), range=(0, bins))
+    image = image.astype(int)
+
+    if bins is None:
+        bins = int(image.max() - image.min())
+    hist_values, bin_edges = np.histogram(image, bins=bins)
 
     # Find peaks
-    peaks, _ = find_peaks(hist_values, prominence=10)
+    peaks, _ = find_peaks(hist_values, prominence=5)
 
     if len(peaks) > 0:
         first_peak_bin = bin_edges[peaks[0]]  # First peak intensity
