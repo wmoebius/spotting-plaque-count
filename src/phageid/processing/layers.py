@@ -107,7 +107,7 @@ class GaussianBlur(Layer):
     def __call__(self, stack: ImageStack) -> ImageStack:
         for i, img in enumerate(stack):
             stack[i] = cv2.GaussianBlur(
-                img.astype(np.float32), (self.kernel_size, self.kernel_size), self.sigma
+                img.astype(float), (self.kernel_size, self.kernel_size), self.sigma
             )
         return stack
 
@@ -233,21 +233,11 @@ class Convolution(ImageLayer):
 
 
 class PeakFinder(PointLayer):
-    def __init__(self, min_distance: int, threshold_rel: float, threshold_abs: float):
-        self.min_distance = min_distance
-        self.threshold_rel = threshold_rel
-        self.threshold_abs = threshold_abs
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     def __call__(self, stack: ImageStack) -> PointStack:
-        peaks = [
-            peak_local_max(
-                im,
-                min_distance=self.min_distance,
-                threshold_rel=self.threshold_rel,
-                threshold_abs=self.threshold_abs,
-            )
-            for im in stack
-        ]
+        peaks = [peak_local_max(im, **self.kwargs) for im in stack]
         return [image_to_cartesian(pk) for pk in peaks]
 
 
@@ -269,3 +259,14 @@ class AgglomeratePeaks(PointLayer):
                 out.append(current)
 
         return out
+
+
+class LayerProduct(PointLayer):
+    def __init__(self, values: ImageStack):
+        self.values = values
+
+    def __call__(self, stack: ImageStack) -> ImageStack:
+        for (i, layer), val in zip(enumerate(stack), self.values):
+            stack[i] = layer * val
+
+        return stack
