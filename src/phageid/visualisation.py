@@ -3,7 +3,7 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
-# from IPython.display import HTML
+from IPython.display import HTML
 from matplotlib.animation import FuncAnimation
 
 
@@ -49,7 +49,7 @@ def video_image_sequence(images: List[np.ndarray], fps: int = 30):
     plt.close(fig)
 
     # Display the animation in the notebook
-    # return HTML(anim.to_jshtml())
+    return HTML(anim.to_jshtml())
 
 
 def video_image_sequence_with_scatter(
@@ -112,4 +112,4 @@ def video_image_sequence_with_scatter(
     plt.close(fig)
 
     # Display the animation in the notebook
-    # return HTML(anim.to_jshtml())
+    return HTML(anim.to_jshtml())
