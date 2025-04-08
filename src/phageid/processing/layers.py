@@ -29,15 +29,28 @@ class PointLayer(Layer):
 
 class Threshold(ImageLayer):
     def __init__(
-        self, thresh: np.number, above: bool = True, allow_equal: bool = False
+        self,
+        thresh: Union[np.number, Callable],
+        above: bool = True,
+        allow_equal: bool = False,
     ):
         self.thresh = thresh
         self.above = above
         self.allow_equal = allow_equal
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        op = getattr(np, "greater") if self.above else getattr(np, "less")
-        return op(stack, self.thresh).astype(np.int64)
+        if self.above:
+            op = np.greater
+        else:
+            op = np.less
+
+        if isinstance(self.thresh, Callable):
+            for i, layer in enumerate(stack):
+                op(layer, self.thresh(layer))
+        elif isinstance(self.thresh, (float, int, np.nan)):
+            for i, layer in enumerate(stack):
+                op(layer, self.thresh)
+        return stack
 
 
 class Normalise(ImageLayer):
