@@ -1,9 +1,8 @@
 from phageid.cli import detect
-from phageid.utils import DIR_ROOT
 
 
 def test_detect():
-    input = DIR_ROOT / "test_out/tray_0.npy"
+    input = "path/to/file"
 
     assert input.is_file()
 

@@ -148,39 +148,26 @@ class MaskReplace(ImageLayer):
 
 class ThreshReplace(ImageLayer):
     def __init__(
-        self, thresh: float, replace: Union[np.number, str], above: bool = True
+        self, thresh: float, value: Union[np.number, Callable], above: bool = True
     ):
         self.thresh = thresh
-        self.replace = replace
+        self.value = value
         self.above = above
 
     def __call__(self, stack: ImageStack) -> ImageStack:
-        stack_ = np.stack(stack)
-        if isinstance(self.replace, str):
-            try:
-                op = getattr(np, self.replace)
-            except AttributeError:
-                raise ValueError(
-                    f"replace value parsed to ThreshReplace not valid. Received {self.replace}"
-                )
-            values = op(stack_, axis=(1, 2), keepdims=True)
-        else:
-            values = np.ones(stack_.shape[0]) * self.replace
-
         if self.above:
-            mask = stack_ > self.thresh
+            op = np.greater
         else:
-            mask = stack_ < self.thresh
+            op = np.less
 
-        # TODO: changed the below lines but did not test. Need to test and confirm.
-        # TODO: This could easily be modified to use MaskReplace and reduce codebase
-        # size and increase maintainability.
-        # stack_[mask] = np.take_along_axis(
-        stack_[:, mask] = np.take_along_axis(
-            values, np.zeros_like(stack_, dtype=int), axis=0
-        )[mask]
+        if isinstance(self.value, Callable):
+            for i, layer in enumerate(stack):
+                stack[i][op(layer, self.thresh)] = self.value(layer)
+        elif isinstance(self.value, (float, int, np.nan)):
+            for i, layer in enumerate(stack):
+                stack[i][op(layer, self.thresh)] = self.value
 
-        return [im for im in stack_]
+        return stack
 
 
 class SubtractByFrame(ImageLayer):
