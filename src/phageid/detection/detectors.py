@@ -3,14 +3,14 @@ import numpy as np
 
 from phageid.dtypes import ImageStack, PointStack
 from phageid.processing import Process
-from phageid.processing.kernels import RingKernel, GaussianKernel
+from phageid.processing.kernels import GaussianKernel, RingKernel
 from phageid.processing.layers import (
     AgglomeratePeaks,
     Convolution,
     PeakFinder,
-    SubtractByFrame,
-    Difference,
     Threshold,
+    Difference,
+    SubtractByFrame,
 )
 from phageid.utils import find_first_peak
 
@@ -34,12 +34,21 @@ class GaussianDetector(Detector):
 
 
 class RingDetector(Detector):
+    # define kernel
+    # TODO: Tidy this up
+    kernel = RingKernel(size=21, thickness=3, blur=1)
+    kernel._kernel -= kernel._kernel.min()
+    kernel._kernel /= kernel._kernel.sum()
+
     process = Process(
         [
-            SubtractByFrame(value=lambda x: find_first_peak(x, 256, False)),
             Difference(separation=2),
-            Convolution(kernel=RingKernel(size=25, thickness=4, blur=1)),
-            PeakFinder(min_distance=10, threshold_rel=0.0, threshold_abs=3.3),
+            SubtractByFrame(value=np.min),
+            Threshold(
+                thresh=lambda x: find_first_peak(x) + 5, above=True, allow_equal=False
+            ),
+            Convolution(kernel=kernel),
+            PeakFinder(threshold_abs=0.65, footprint=np.ones((3, 3))),
             AgglomeratePeaks(min_distance=15),
         ]
     )
