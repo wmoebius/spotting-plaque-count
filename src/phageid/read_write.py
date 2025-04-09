@@ -9,6 +9,7 @@ from phageid import logging
 from phageid.dtypes import ImageStack, PointStack
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def has_placeholder(s: str) -> bool:
@@ -114,15 +115,16 @@ def write_stacks(
 def write_plot(image: NDArray[np.number], points: NDArray[np.number], file_path: Path):
     # Create the plot
     plt.imshow(image, cmap="viridis")  # Use cmap='gray' for grayscale images
-    plt.scatter(*points.T, c="r", marker="x", s=20)  # red dots
+    plt.scatter(*points.T, c="r", s=5)  # red dots
     plt.axis("off")  # Optional: hide axes
 
-    plt.savefig(file_path, bbox_inches="tight", pad_inches=0)
+    plt.savefig(file_path, bbox_inches="tight", pad_inches=0, dpi=300)
     plt.close()
 
 
 def write_plots(images: ImageStack, points: PointStack, dir_path: Path):
-    for i in range(1, len(images)):
+    logging.info("writing outputs to {}".format(dir_path))
+    for i in tqdm(range(1, len(images))):
         image = images[i]
         point = np.vstack(points[:i])
 

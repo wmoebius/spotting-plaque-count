@@ -1,10 +1,9 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
-from typing import Optional
 
 from phageid.dtypes import D_ImageStack, D_PointStack, Image, Points
 
@@ -75,7 +74,7 @@ def find_first_peak(image, bins: Optional[int] = None, plot=False):
 
         return first_peak_bin
     else:
-        return None
+        return image.min()
 
 
 def convert_image_stacks(d_stack: D_ImageStack) -> List[Dict[Tuple[int, int], Image]]:
