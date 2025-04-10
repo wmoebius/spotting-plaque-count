@@ -34,9 +34,7 @@ class GaussianDetector(Detector):
 
 
 class RingDetector(Detector):
-    # define kernel
-    # TODO: Tidy this up
-    kernel = RingKernel(size=39, thickness=3, blur=1)
+    kernel = RingKernel(size=21, thickness=3, blur=1)
     kernel._kernel -= kernel._kernel.min()
     kernel._kernel /= kernel._kernel.sum()
 

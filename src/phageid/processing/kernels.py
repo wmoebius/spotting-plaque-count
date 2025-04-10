@@ -41,9 +41,7 @@ class Kernel(ABC):
             return self.kernel_op(self._create())
 
     def convolve(self, image: npt.NDArray[Any]) -> npt.NDArray[Any]:
-        return convolve2d(
-            image, self._kernel, mode="same", boundary="fill", fillvalue=1
-        )
+        return convolve2d(image, self._kernel, mode="valid", boundary="fill")
 
 
 class GaussianKernel(Kernel):
