@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,7 +33,7 @@ def normalise(array: NDArray) -> NDArray[np.float64]:
     return (array - array.min()) / rnge
 
 
-def find_first_peak(image, bins=256, plot=False):
+def find_first_peak(image, bins: Optional[int] = None, plot=False):
     """
     Finds the first peak in the histogram of intensity values in a NumPy array.
 
@@ -46,10 +46,14 @@ def find_first_peak(image, bins=256, plot=False):
     - first_peak_intensity: float or None, the intensity value of the first peak.
     """
     # Compute histogram
-    hist_values, bin_edges = np.histogram(image, bins=np.arange(bins), range=(0, bins))
+    image = image.astype(int)
+
+    if bins is None:
+        bins = int(image.max() - image.min())
+    hist_values, bin_edges = np.histogram(image, bins=bins)
 
     # Find peaks
-    peaks, _ = find_peaks(hist_values, prominence=10)
+    peaks, _ = find_peaks(hist_values, prominence=5)
 
     if len(peaks) > 0:
         first_peak_bin = bin_edges[peaks[0]]  # First peak intensity
@@ -70,7 +74,7 @@ def find_first_peak(image, bins=256, plot=False):
 
         return first_peak_bin
     else:
-        return None
+        return image.min()
 
 
 def convert_image_stacks(d_stack: D_ImageStack) -> List[Dict[Tuple[int, int], Image]]:

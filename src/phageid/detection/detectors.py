@@ -1,4 +1,5 @@
 from abc import ABC
+import numpy as np
 
 from phageid.dtypes import ImageStack, PointStack
 from phageid.processing import Process
@@ -6,10 +7,10 @@ from phageid.processing.kernels import GaussianKernel, RingKernel
 from phageid.processing.layers import (
     AgglomeratePeaks,
     Convolution,
-    GaussianBlur,
     PeakFinder,
-    SubtractByFrame,
+    Threshold,
     Difference,
+    SubtractByFrame,
 )
 from phageid.utils import find_first_peak
 
@@ -22,23 +23,32 @@ class Detector(ABC):
 class GaussianDetector(Detector):
     process = Process(
         [
-            SubtractByFrame(value=lambda x: find_first_peak(x, 256, False)),
-            GaussianBlur(kernel_size=7, sigma=0.5),
-            Convolution(kernel=GaussianKernel(size=13, sigma=2)),
-            GaussianBlur(kernel_size=9, sigma=1),
-            PeakFinder(min_distance=15, threshold_rel=0.0, threshold_abs=32),
+            Threshold(
+                thresh=lambda x: find_first_peak(x) * 1.1, above=True, allow_equal=False
+            ),
+            Convolution(kernel=GaussianKernel(size=21, sigma=3)),
+            PeakFinder(threshold_abs=4.9, footprint=np.ones((3, 3))),
             AgglomeratePeaks(min_distance=15),
         ]
     )
 
 
 class RingDetector(Detector):
+    # define kernel
+    # TODO: Tidy this up
+    kernel = RingKernel(size=35, thickness=3, blur=1)
+    kernel._kernel -= kernel._kernel.min()
+    kernel._kernel /= kernel._kernel.sum()
+
     process = Process(
         [
-            SubtractByFrame(value=lambda x: find_first_peak(x, 256, False)),
             Difference(separation=2),
-            Convolution(kernel=RingKernel(size=25, thickness=4, blur=1)),
-            PeakFinder(min_distance=10, threshold_rel=0.0, threshold_abs=3.3),
+            SubtractByFrame(value=np.min),
+            Threshold(
+                thresh=lambda x: find_first_peak(x) + 5, above=True, allow_equal=False
+            ),
+            Convolution(kernel=kernel),
+            PeakFinder(threshold_abs=0.65, footprint=np.ones((3, 3))),
             AgglomeratePeaks(min_distance=15),
         ]
     )

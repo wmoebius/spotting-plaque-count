@@ -8,7 +8,7 @@ from matplotlib.widgets import Button, Slider
 from phageid._config import PATH_CONFIG, config
 from phageid.dtypes import D_ImageStack, ImageStack
 
-logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
 def load_slider_values():

@@ -1,7 +1,6 @@
 from typing import List
 
 import click
-import matplotlib.pyplot as plt
 
 from phageid.detection.detection import detect_dstack
 from phageid.dtypes import D_ImageStack, D_PointStack, ImageStack
@@ -16,7 +15,6 @@ from phageid.read_write import (
 from phageid.segmentation import segment_samples
 from phageid.segmentation import segment_trays as _segment_trays
 from phageid.stitching import join_stacks_with_points
-from phageid.visualisation import video_image_sequence_with_scatter
 
 
 @click.group()
@@ -59,13 +57,6 @@ def detect(input_file, output_dir, visualise):
     d_images: D_ImageStack = segment_samples(images, visualise=visualise)
     d_points: D_PointStack = detect_dstack(d_images)
     images, points = join_stacks_with_points(d_images, d_points)
-
-    if visualise:
-        vid = video_image_sequence_with_scatter(
-            images, points)
-        # plt.imshow(images[-1])
-        # plt.scatter(*points[-1].T, marker="x", c="r")
-        plt.show()
 
     write_plots(images=images, points=points, dir_path=output_path)
 
