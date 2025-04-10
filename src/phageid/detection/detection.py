@@ -5,12 +5,11 @@ from phageid.processing.layers import AgglomeratePeaks
 
 from .detectors import GaussianDetector, RingDetector
 
-from copy import deepcopy
 from tqdm import tqdm
 
 
 def detect_phage(stack: ImageStack) -> PointStack:
-    stack2 = deepcopy(stack)
+    stack2 = stack.copy()
 
     gaus_detector = GaussianDetector()
     points_gaussian = gaus_detector(stack2)

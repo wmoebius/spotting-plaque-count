@@ -30,7 +30,7 @@ def parse_argument_dirs(input_dir: str, output_dir: Optional[str]) -> Tuple[Path
 
     # valudate output path
     if not output_path.is_dir():
-        output_path.mkdir()
+        output_path.mkdir(parents=True)
         logging.info(f"created output directory: {output_path}")
 
     return input_path, output_path
@@ -53,7 +53,7 @@ def parse_detection_args(
 
     # valudate output path
     if not output_path.is_dir():
-        output_path.mkdir()
+        output_path.mkdir(parents=True)
         logging.info(f"created output directory: {output_path}")
 
     return input_path, output_path
@@ -115,10 +115,10 @@ def write_stacks(
 def write_plot(image: NDArray[np.number], points: NDArray[np.number], file_path: Path):
     # Create the plot
     plt.imshow(image, cmap="viridis")  # Use cmap='gray' for grayscale images
-    plt.scatter(*points.T, c="r", s=5)  # red dots
+    plt.scatter(*points.T, c="r", s=1)  # red dots
     plt.axis("off")  # Optional: hide axes
 
-    plt.savefig(file_path, bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.savefig(file_path, bbox_inches="tight", pad_inches=0, dpi=500)
     plt.close()
 
 

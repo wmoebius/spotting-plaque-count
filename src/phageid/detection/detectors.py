@@ -11,6 +11,9 @@ from phageid.processing.layers import (
     Threshold,
     Difference,
     SubtractByFrame,
+    Dilation,
+    Erosion,
+    LayerProduct,
 )
 from phageid.utils import find_first_peak
 
@@ -34,21 +37,31 @@ class GaussianDetector(Detector):
 
 
 class RingDetector(Detector):
-    # define kernel
-    # TODO: Tidy this up
-    kernel = RingKernel(size=35, thickness=3, blur=1)
+    kernel = RingKernel(size=39, thickness=3, blur=1)
     kernel._kernel -= kernel._kernel.min()
     kernel._kernel /= kernel._kernel.sum()
 
-    process = Process(
-        [
-            Difference(separation=2),
-            SubtractByFrame(value=np.min),
-            Threshold(
-                thresh=lambda x: find_first_peak(x) + 5, above=True, allow_equal=False
-            ),
-            Convolution(kernel=kernel),
-            PeakFinder(threshold_abs=0.65, footprint=np.ones((3, 3))),
-            AgglomeratePeaks(min_distance=15),
-        ]
-    )
+    def __call__(self, stack: ImageStack) -> PointStack:
+        masks = Threshold(thresh=lambda x: find_first_peak(x) * 1.1, above=True)(
+            stack.copy()
+        )
+        masks = Dilation(kernel_size=3, iterations=3)(masks)
+        masks = Erosion(kernel_size=3, iterations=3)(masks)
+        self.masks = masks[2:]
+
+        self.process = Process(
+            [
+                Difference(separation=2),
+                SubtractByFrame(value=np.min),
+                Threshold(
+                    thresh=lambda x: find_first_peak(x) + 5,
+                    above=True,
+                    allow_equal=False,
+                ),
+                Convolution(kernel=self.kernel),
+                LayerProduct(values=self.masks),
+                PeakFinder(threshold_abs=0.65, footprint=np.ones((3, 3))),
+                AgglomeratePeaks(min_distance=15),
+            ]
+        )
+        return self.process(stack)
