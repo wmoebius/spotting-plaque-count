@@ -115,10 +115,10 @@ def write_stacks(
 def write_plot(image: NDArray[np.number], points: NDArray[np.number], file_path: Path):
     # Create the plot
     plt.imshow(image, cmap="viridis")  # Use cmap='gray' for grayscale images
-    plt.scatter(*points.T, c="r", s=5)  # red dots
+    plt.scatter(*points.T, c="r", s=1)  # red dots
     plt.axis("off")  # Optional: hide axes
 
-    plt.savefig(file_path, bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.savefig(file_path, bbox_inches="tight", pad_inches=0, dpi=500)
     plt.close()
 
 
