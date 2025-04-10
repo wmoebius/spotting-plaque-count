@@ -30,7 +30,7 @@ def parse_argument_dirs(input_dir: str, output_dir: Optional[str]) -> Tuple[Path
 
     # valudate output path
     if not output_path.is_dir():
-        output_path.mkdir()
+        output_path.mkdir(parents=True)
         logging.info(f"created output directory: {output_path}")
 
     return input_path, output_path
@@ -53,7 +53,7 @@ def parse_detection_args(
 
     # valudate output path
     if not output_path.is_dir():
-        output_path.mkdir()
+        output_path.mkdir(parents=True)
         logging.info(f"created output directory: {output_path}")
 
     return input_path, output_path
